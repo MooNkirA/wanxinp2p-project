@@ -1,40 +1,15 @@
-server:
-  servlet:
-    context-path: /consumer # 微服务访问路径
+app:
+  id: consumer-service # apollo 项目的 AppId 配置
+apollo:
+  bootstrap:
+    # 开启 apollo.bootstrap，用于集成 springboot
+    enabled: true
+    # 指定 namespaces，多个使用逗号分隔
+    namespaces: application,micro_service.spring-boot-druid,micro_service.spring-boot-http,micro_service.spring-eureka,micro_service.spring-hystrix,micro_service.spring-ribbon,micro_service.spring-boot-redis,micro_service.mybatis-plus,micro_service.spring-rocketmq
+
 spring:
   application:
-    name: consumer-service # 应用程序名称
-  http:
-    # 中文乱码处理
-    encoding:
-      charset: UTF-8
-      enabled: true
-      force: true
-  mvc:
-    throw-exception-if-no-handler-found: true # spring全局异常处理
-# springCloud eureka配置
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost:53000/eureka/
-  instance:
-    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
-    preferIpAddress: true # 注册时使用ip地址，不使用服务名
-# springCloud ribbon配置
-ribbon:
-  # 请求连接的超时时间
-  ConnectTimeout: 3000
-  # 最大重试次数，当Eureka中可以找到服务，但是服务连不上时将会重试
-  MaxAutoRetries: 2.0
-  # 切换实例的重试次数
-  MaxAutoRetriesNextServer: 2
-  # 对所有操作请求都进行重试，如果是get则可以，如果是post，put等操作没有实现幂等的情况下是很危险的,所以设置为false
-  OkToRetryOnAllOperations: false
-  # 请求处理的超时时间
-  ReadTimeout: 20000
-# 日志配置
+    name: consumer-service
+
 logging:
   config: classpath:log4j2-dev.xml
-# 开启swagger
-swagger:
-  enable: true

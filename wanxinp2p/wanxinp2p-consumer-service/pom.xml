@@ -12,7 +12,6 @@
     <artifactId>wanxinp2p-consumer-service</artifactId>
 
     <dependencies>
-
         <dependency>
             <groupId>com.moon.wanxinp2p</groupId>
             <artifactId>wanxinp2p-api</artifactId>
@@ -22,11 +21,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.netflix.hystrix</groupId>
-            <artifactId>hystrix-javanica</artifactId>
         </dependency>
 
         <dependency>
@@ -44,7 +38,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -88,6 +81,12 @@
             <artifactId>gson</artifactId>
         </dependency>
 
+        <!-- Apollo 客户端依赖 -->
+        <dependency>
+            <groupId>com.ctrip.framework.apollo</groupId>
+            <artifactId>apollo-client</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -124,8 +123,6 @@
             <artifactId>kryo</artifactId>
             <version>4.0.2</version>
         </dependency>
-
     </dependencies>
-
 
 </project>

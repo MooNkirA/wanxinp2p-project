@@ -1,0 +1,47 @@
+server:
+  servlet:
+    context-path: / # 微服务访问路径
+spring:
+  application:
+    name: gateway-server # 应用程序名称
+  http:
+    # 中文乱码处理
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  mvc:
+    # spring全局异常处理
+    throw-exception-if-no-handler-found: true
+
+eureka:
+  # springCloud eureka配置
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:53000/eureka/
+  instance:
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${server.port}
+    preferIpAddress: true # 注册时使用ip地址，不使用服务名
+# springCloud ribbon配置
+ribbon:
+  ConnectTimeout: 3000 # 请求连接的超时时间
+  MaxAutoRetries: 1 # 最大重试次数，当Eureka中可以找到服务，但是服务连不上时将会重试
+  MaxAutoRetriesNextServer: 1 # 切换实例的重试次数
+  OkToRetryOnAllOperations: false # 对所有操作请求都进行重试，如果是get则可以，如果是post，put等操作没有实现幂等的情况下是很危险的,所以设置为false
+  ReadTimeout: 20000 # 请求处理的超时时间
+
+# springCloud zuul网关配置
+zuul:
+  add-host-header: true # 网关会转发请求头信息
+  ignoredServices: '*' # 关闭自动路由匹配，全部手动匹配，更安全
+  retryable: true # 开启重试
+  routes:
+    consumer-service:
+      path: /consumer/** # 路由配置
+      stripPrefix: false # 请求没有前缀，不用去除前缀进行请求转发
+# 日志配置
+logging:
+  config: classpath:log4j2-dev.xml
+# 开启swagger
+swagger:
+  enable: true

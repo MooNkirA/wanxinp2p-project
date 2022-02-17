@@ -9,19 +9,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @Api(value = "用户服务的Controller", tags = "Consumer", description = "用户服务API")
-    public class ConsumerController {
+public class ConsumerController {
 
-        @ApiOperation("测试hello")
-        @GetMapping(path = "/hello")
-        public String hello(){
-            return "hello";
-        }
+    @ApiOperation("测试hello")
+    @GetMapping(path = "/hello")
+    public String hello() {
+        return "hello";
+    }
 
-        @ApiOperation("测试hi")
-        @ApiImplicitParam(name="name",value="姓名",required = true,dataType = "String")
-        @PostMapping(value = "/hi")
-        public String hi(String name){
-            return "hi,"+name;
-        }
+    @ApiOperation("测试hi")
+    @ApiImplicitParam(name = "name", value = "姓名", required = true, dataType = "String")
+    @PostMapping(value = "/hi")
+    public String hi(String name) {
+        return "hi," + name;
+    }
 
 }
