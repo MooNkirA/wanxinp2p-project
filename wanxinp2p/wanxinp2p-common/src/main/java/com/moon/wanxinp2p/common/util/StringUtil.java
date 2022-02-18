@@ -340,6 +340,6 @@ public class StringUtil {
      * @return
      */
     public static String mapCamelCaseToUnderscore(String str) {
-        return str.replaceAll("([A-Z]){1}","_$1").toUpperCase();
+        return str.replaceAll("([A-Z]){1}", "_$1").toUpperCase();
     }
 }

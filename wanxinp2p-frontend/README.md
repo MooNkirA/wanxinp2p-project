@@ -1,12 +1,14 @@
 # wanxinp2p-frontend 万信金融前端工程
 
-## 概述
+## 万信金融前端工程概述
 
-> 万信金融项目前端工程，以 H5 为主，结合uni-app 的全端特性。同步实现了安卓、iOS、微信小程序的同步实现
+### 前端APP工程（wanxinp2p-frontend-app）
 
-![image](./demo.png)
+> wanxinp2p-frontend-app 是万信金融项目前端APP工程，以 H5 为主，结合uni-app 的全端特性。同步实现了安卓、iOS、微信小程序的同步实现
 
-## 项目结构
+![](./img/demo.png)
+
+#### 项目结构
 
 ```
 ┌─components            uni-app公共组件目录
@@ -23,22 +25,19 @@
 └─pages.json            配置页面路由、导航条、选项卡等页面类信息
 ```
 
-##  MOCK
+#### APP 项目安装使用
 
-- 
+- 一、下载 VSCode 导入运行
+- 二、通过安装脚手架，安装依赖环境
+    - `npm install -g @vue/cli`
+    - `vue create -p dcloudio/uni-preset-vue my-project`
+    > 全局安装vue-cli，并创建uni-app，用现有项目内容替换掉新建项目的 src 文件内容即可
+    - 项目启动执行命令：`npm run dev:h5`
+
 
 ## Git
 
 - https://github.com/MooNkirA/wanxinp2p-project
-
-## 安装使用
-
-- 一、下载 VSCode 导入运行
-- 二、通过安装脚手架，安装依赖环境
-	- `npm install -g @vue/cli`
-	- `vue create -p dcloudio/uni-preset-vue my-project`
-	> 全局安装vue-cli，并创建uni-app，用现有项目内容替换掉新建项目的 src 文件内容即可
-	- 项目启动执行命令：`npm run dev:h5`  
 
 ## Project setup
 

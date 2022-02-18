@@ -3,7 +3,7 @@
     <properties>
     	<property name="prjname">discover-server</property>
         <property name="logdir">E:/logs/wanxinp2p</property>
-        <property name="PATTERN">[${project.name}][${env:SERVER_PORT}] %date{YYYY-MM-dd HH:mm:ss,SSS} %level [%thread][%file:%line] - %msg%n%throwable</property>
+        <property name="PATTERN">[discover-server] %date{YYYY-MM-dd HH:mm:ss,SSS} %level [%thread][%file:%line] - %msg%n%throwable</property>
     </properties>
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
