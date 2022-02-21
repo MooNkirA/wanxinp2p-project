@@ -1,5 +1,8 @@
 package com.moon.wanxinp2p.common.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum StatusCode {
 
     /**
@@ -15,27 +18,11 @@ public enum StatusCode {
      */
     STATUS_OUT(0, "未发/同布");
 
-    private Integer code;
-    private String desc;
+    private final Integer code;
+    private final String desc;
 
     StatusCode(int code, String desc) {
         this.code = code;
-        this.desc = desc;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
         this.desc = desc;
     }
 }

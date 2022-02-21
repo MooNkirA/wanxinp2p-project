@@ -1,5 +1,7 @@
 package com.moon.wanxinp2p.api.account;
 
+import com.moon.wanxinp2p.api.account.model.AccountDTO;
+import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 
 /**
@@ -20,5 +22,21 @@ public interface AccountAPI {
      */
     RestResponse<Object> getSMSCode(String mobile);
 
+    /**
+     * 校验手机号和验证码
+     *
+     * @param mobile 手机号
+     * @param key    校验标识
+     * @param code   验证码
+     * @return
+     */
+    RestResponse<Integer> checkMobile(String mobile, String key, String code);
 
+    /**
+     * 注册并保存信息
+     *
+     * @param accountRegisterDTO
+     * @return
+     */
+    RestResponse<AccountDTO> register(AccountRegisterDTO accountRegisterDTO);
 }

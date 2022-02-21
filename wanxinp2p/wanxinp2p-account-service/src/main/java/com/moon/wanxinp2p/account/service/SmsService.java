@@ -20,4 +20,12 @@ public interface SmsService {
      */
     RestResponse<Object> getSMSCode(String mobile);
 
+    /**
+     * 校验验证码
+     *
+     * @param key  校验标识 redis中的键
+     * @param code 短信验证码
+     */
+    void verifySmsCode(String key, String code);
+
 }

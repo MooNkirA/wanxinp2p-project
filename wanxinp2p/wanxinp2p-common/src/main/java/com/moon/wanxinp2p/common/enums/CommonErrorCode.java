@@ -1,17 +1,17 @@
 package com.moon.wanxinp2p.common.enums;
 
 import com.moon.wanxinp2p.common.domain.ErrorCode;
+import lombok.Getter;
 
 /**
- * 异常编码 0成功、-1熔断、 -2 标准参数校验不通过 -3会话超时
- * 前两位:服务标识
- * 中间两位:模块标识
- * 后两位:异常标识
+ * 成功响应码：0成功；
+ * 异常响应码：-1熔断、 -2 标准参数校验不通过 -3会话超时
+ * 前两位:服务标识；中间两位:模块标识；后两位:异常标识
  */
+@Getter
 public enum CommonErrorCode implements ErrorCode {
 
-    ////////////////////////////////////公用异常编码 //////////////////////////
-
+    /*++++++++++++++++ 公用响应码 +++++++++++++++++++*/
     SUCCESS(0, "成功"),
     FUSE(-1, "网关调用熔断"),
 
@@ -55,25 +55,15 @@ public enum CommonErrorCode implements ErrorCode {
      */
     UNKOWN(999999, "未知错误");
 
+    private final int code;
+    private final String desc;
 
-    private int code;
-    private String desc;
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    private CommonErrorCode(int code, String desc) {
+    CommonErrorCode(int code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-
-    public static CommonErrorCode setErrorCode(int code) {
+    public static CommonErrorCode getErrorCode(int code) {
         for (CommonErrorCode errorCode : CommonErrorCode.values()) {
             if (errorCode.getCode() == code) {
                 return errorCode;
