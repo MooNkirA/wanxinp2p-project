@@ -17,6 +17,7 @@ import lombok.Getter;
  */
 @Getter
 public enum AccountErrorCode implements ErrorCode {
+
     E_130101(130101, "用户名已存在"),
     E_130104(130104, "用户未注册"),
     E_130105(130105, "用户名或密码错误"),
@@ -33,7 +34,7 @@ public enum AccountErrorCode implements ErrorCode {
         this.desc = desc;
     }
 
-    public static AccountErrorCode setErrorCode(int code) {
+    public static AccountErrorCode getErrorCode(int code) {
         for (AccountErrorCode errorCode : AccountErrorCode.values()) {
             if (errorCode.getCode() == code) {
                 return errorCode;
