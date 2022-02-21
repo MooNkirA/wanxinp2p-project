@@ -1,18 +1,23 @@
 package com.moon.wanxinp2p.consumer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.additional.query.impl.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.moon.wanxinp2p.api.account.model.AccountDTO;
+import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
+import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
+import com.moon.wanxinp2p.common.enums.CommonErrorCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
+import com.moon.wanxinp2p.consumer.agent.AccountApiAgent;
 import com.moon.wanxinp2p.consumer.common.enums.ConsumerErrorCode;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
 import com.moon.wanxinp2p.consumer.mapper.ConsumerMapper;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -25,6 +30,10 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> implements ConsumerService {
+
+    // 注入 feign 服务调用接口
+    @Autowired
+    private AccountApiAgent accountApiAgent;
 
     /**
      * 检测用户是否存在
@@ -60,6 +69,16 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
 
         // 保存用户
         save(consumer);
+
+        // 创建统一认证服务的调用参数
+        AccountRegisterDTO dto = new AccountRegisterDTO();
+        BeanUtils.copyProperties(consumerRegisterDTO, dto);
+        // 远程调用
+        RestResponse<AccountDTO> result = accountApiAgent.register(dto);
+        if (CommonErrorCode.SUCCESS.getCode() != result.getCode()) {
+            // 调用失败，抛出业务异常
+            throw new BusinessException(ConsumerErrorCode.E_140106);
+        }
     }
 
     /**

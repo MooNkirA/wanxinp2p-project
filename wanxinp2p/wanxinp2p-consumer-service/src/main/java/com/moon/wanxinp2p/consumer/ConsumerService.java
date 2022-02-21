@@ -8,6 +8,10 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @EnableDiscoveryClient
+/*
+ * @EnableFeignClients 注解用于开启 Spring Cloud Feign 的支持功能
+ * basePackages 属性：指定扫描的包路径
+ */
 @EnableFeignClients(basePackages = {"com.moon.wanxinp2p.consumer.agent"})
 @ComponentScan(basePackages = {"com.moon.wanxinp2p.common", "com.moon.wanxinp2p.consumer"}) // 扫描接口，common工程所在包
 public class ConsumerService {

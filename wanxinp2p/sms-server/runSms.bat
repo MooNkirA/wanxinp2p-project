@@ -1,3 +1,3 @@
 echo 
 
-java -jar sailing.jar
+start java -jar sailing.jar

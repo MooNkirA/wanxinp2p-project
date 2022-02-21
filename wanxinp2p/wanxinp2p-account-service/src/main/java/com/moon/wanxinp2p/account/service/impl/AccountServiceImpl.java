@@ -78,7 +78,6 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         Account account = new Account();
         account.setUsername(accountRegisterDTO.getUsername());
         account.setMobile(accountRegisterDTO.getMobile());
-        account.setPassword(PasswordUtil.generate(accountRegisterDTO.getPassword()));
 
         /*
          * 密码需要加密。这里需要特别注意：
