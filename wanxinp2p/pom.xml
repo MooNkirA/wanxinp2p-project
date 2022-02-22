@@ -22,6 +22,7 @@
         <module>wanxinp2p-consumer-service</module>
         <module>wanxinp2p-discover-server</module>
         <module>wanxinp2p-account-service</module>
+        <module>wanxinp2p-uaa-service</module>
     </modules>
 
     <properties>
