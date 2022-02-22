@@ -2,14 +2,17 @@ package com.moon.wanxinp2p.account.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.moon.wanxinp2p.account.common.enums.AccountErrorCode;
 import com.moon.wanxinp2p.account.entity.Account;
 import com.moon.wanxinp2p.account.mapper.AccountMapper;
 import com.moon.wanxinp2p.account.service.AccountService;
 import com.moon.wanxinp2p.account.service.SmsService;
 import com.moon.wanxinp2p.api.account.model.AccountDTO;
+import com.moon.wanxinp2p.api.account.model.AccountLoginDTO;
 import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.StatusCode;
+import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.PasswordUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,4 +100,59 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         return dto;
     }
 
+    /**
+     * 用户登陆
+     *
+     * @param accountLoginDTO 封装登录请求数据
+     * @return 用户及权限信息
+     */
+    @Override
+    public AccountDTO login(AccountLoginDTO accountLoginDTO) {
+        // 先根据用户名进行查询，然后再比对密码
+        Account account = null;
+        if (accountLoginDTO.getDomain().equalsIgnoreCase("c")) {
+            // 如果是c端用户，用户名就是手机号
+            account = getAccountByMobile(accountLoginDTO.getMobile());
+        } else {
+            // 如果是b端用户，用户名就是账号
+            account = getAccountByUsername(accountLoginDTO.getUsername());
+        }
+        if (account == null) {
+            // 用户不存在，抛出业务异常
+            throw new BusinessException(AccountErrorCode.E_130104);
+        }
+
+        AccountDTO accountDTO = new AccountDTO();
+        BeanUtils.copyProperties(account, accountDTO);
+        if (smsEnable) {
+            // 如果为true，表示采用短信验证码登录，无需比较密码
+            return accountDTO;
+        }
+        // 验证密码
+        if (PasswordUtil.verify(accountLoginDTO.getPassword(), account.getPassword())) {
+            return accountDTO;
+        }
+
+        throw new BusinessException(AccountErrorCode.E_130105);
+    }
+
+    /**
+     * 根据用户名获取账户信息
+     *
+     * @param username 用户名
+     * @return 账户实体
+     */
+    private Account getAccountByUsername(String username) {
+        return this.getOne(new QueryWrapper<Account>().lambda().eq(Account::getUsername, username));
+    }
+
+    /**
+     * 根据手机号获取账户信息
+     *
+     * @param mobile 手机号
+     * @return 账户实体
+     */
+    private Account getAccountByMobile(String mobile) {
+        return this.getOne(new QueryWrapper<Account>().lambda().eq(Account::getMobile, mobile));
+    }
 }
