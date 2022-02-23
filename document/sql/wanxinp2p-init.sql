@@ -544,9 +544,9 @@ LOCK TABLES `oauth_client_details` WRITE;
 
 INSERT INTO `oauth_client_details` (`client_id`, `resource_ids`, `client_secret`, `scope`, `authorized_grant_types`, `web_server_redirect_uri`, `authorities`, `access_token_validity`, `refresh_token_validity`, `additional_information`, `create_time`, `archived`, `trusted`, `autoapprove`)
 VALUES
-  ('wanxin-p2p-web-admin','wanxin-resource','itcastb','read','client_credentials,password,authorization_code,implicit,refresh_token','','ROLE_ADMIN,ROLE_CONSUMER,ROLE_API',7200,259200,NULL,'2019-05-07 18:17:18',0,0,'false'),
+  ('wanxin-p2p-web-admin','wanxin-resource','wanxinb','read','client_credentials,password,authorization_code,implicit,refresh_token','','ROLE_ADMIN,ROLE_CONSUMER,ROLE_API',7200,259200,NULL,'2019-05-07 18:17:18',0,0,'false'),
   ('wanxin-p2p-web-app','wanxin-resource','123456','read','client_credentials,password,authorization_code,implicit,refresh_token','','ROLE_CONSUMER,ROLE_API',31536000,2592000,NULL,'2019-05-07 18:17:37',0,0,'false'),
-  ('wanxin-p2p-web-h5','wanxin-resource','itcasth5','read','client_credentials,password,authorization_code,implicit,refresh_token','','ROLE_CONSUMER,ROLE_API',31536000,2592000,NULL,'2019-05-07 19:21:23',0,0,'false');
+  ('wanxin-p2p-web-h5','wanxin-resource','wanxinh5','read','client_credentials,password,authorization_code,implicit,refresh_token','','ROLE_CONSUMER,ROLE_API',31536000,2592000,NULL,'2019-05-07 19:21:23',0,0,'false');
 /*!40000 ALTER TABLE `oauth_client_details` ENABLE KEYS */;
 UNLOCK TABLES;
 
