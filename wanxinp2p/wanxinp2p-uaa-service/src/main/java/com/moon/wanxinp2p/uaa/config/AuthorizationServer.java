@@ -96,8 +96,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
     }
 
     @Override
-    public void configure(ClientDetailsServiceConfigurer clients)
-            throws Exception {
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.withClientDetails(clientDetailsService);
     }
 
@@ -149,7 +148,7 @@ public class AuthorizationServer extends AuthorizationServerConfigurerAdapter {
 					}
                 }*/
                 DefaultOAuth2AccessToken token = (DefaultOAuth2AccessToken) accessToken;
-                Map<String, Object> additionalInformation = new LinkedHashMap<String, Object>();
+                Map<String, Object> additionalInformation = new LinkedHashMap<>();
                 additionalInformation.put("code", 0);
                 additionalInformation.put("msg", "success");
                 token.setAdditionalInformation(additionalInformation);

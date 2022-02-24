@@ -5,6 +5,7 @@ import com.moon.wanxinp2p.api.account.model.AccountLoginDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 /**
  * 统一账户 Feign 远程调用接口
@@ -18,6 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 public interface AccountApiAgent {
 
     @PostMapping(value = "/account/l/accounts/session")
-    RestResponse<AccountDTO> login(AccountLoginDTO accountLoginDTO);
+    RestResponse<AccountDTO> login(@RequestBody AccountLoginDTO accountLoginDTO);
 
 }

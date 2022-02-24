@@ -17,6 +17,6 @@ CREATE TABLE `oauth_client_details`  (
   PRIMARY KEY (`client_id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
-INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-admin'， 'wanxin-resource'， '123456'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_ADMIN，ROLE_CONSUMER，ROLE_API'， 7200， 259200， NULL， '2019-05-07 18:17:18'， 0， 0， 'false');
-INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-app'， 'wanxin-resource'， '123456'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_CONSUMER，ROLE_API'， 31536000， 2592000， NULL， '2019-05-07 18:17:37'， 0， 0， 'false');
-INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-h5'， 'wanxin-resource'， 'itcasth5'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_CONSUMER，ROLE_API'， 31536000， 2592000， NULL， '2019-05-07 19:21:23'， 0， 0， 'false');
+INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-admin'， 'wanxin-resource'， 'wanxin-b'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_ADMIN，ROLE_CONSUMER，ROLE_API'， 7200， 259200， NULL， '2019-05-07 18:17:18'， 0， 0， 'false');
+INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-app'， 'wanxin-resource'， 'wanxin-app'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_CONSUMER，ROLE_API'， 31536000， 2592000， NULL， '2019-05-07 18:17:37'， 0， 0， 'false');
+INSERT INTO `oauth_client_details` VALUES ('wanxin-p2p-web-h5'， 'wanxin-resource'， 'wanxin-h5'， 'read'， 'client_credentials，password，authorization_code，implicit，refresh_token'， ''， 'ROLE_CONSUMER，ROLE_API'， 31536000， 2592000， NULL， '2019-05-07 19:21:23'， 0， 0， 'false');

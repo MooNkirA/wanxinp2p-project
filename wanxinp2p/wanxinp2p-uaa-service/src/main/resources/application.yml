@@ -10,7 +10,6 @@ apollo:
 spring:
   application:
     name: uaa-service
-
   main:
     allow-bean-definition-overriding: true
 

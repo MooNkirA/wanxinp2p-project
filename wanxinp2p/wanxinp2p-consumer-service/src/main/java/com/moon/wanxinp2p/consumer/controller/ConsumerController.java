@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.consumer.controller;
 import com.moon.wanxinp2p.api.consumer.ConsumerApi;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
+import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -38,4 +39,12 @@ public class ConsumerController implements ConsumerApi {
         // 无异常，代表注册成功
         return RestResponse.success();
     }
+
+    @ApiOperation("过网关受保护资源，进行认证拦截测试")
+    @ApiImplicitParam(name = "jsonToken", value = "访问令牌", required = true, dataType = "String")
+    @GetMapping(value = "/m/consumers/test")
+    public RestResponse<String> testResources(String jsonToken) {
+        return RestResponse.success(EncryptUtil.decodeUTF8StringBase64(jsonToken));
+    }
+
 }

@@ -94,7 +94,7 @@ public class AccountController implements AccountAPI {
             required = true, dataType = "AccountLoginDTO", paramType = "body")
     @PostMapping(value = "/l/accounts/session")
     @Override
-    public RestResponse<AccountDTO> login(AccountLoginDTO accountLoginDTO) {
+    public RestResponse<AccountDTO> login(@RequestBody AccountLoginDTO accountLoginDTO) {
         return RestResponse.success(accountService.login(accountLoginDTO));
     }
 
