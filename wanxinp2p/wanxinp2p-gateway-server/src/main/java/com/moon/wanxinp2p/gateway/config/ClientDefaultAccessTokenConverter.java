@@ -151,8 +151,8 @@ public class ClientDefaultAccessTokenConverter implements AccessTokenConverter {
         }
         // 结束增加对client Authorities支持
 
-        OAuth2Request request = new OAuth2Request(parameters, clientId, authorities, true, scope, resourceIds, null, null,
-                null);
+        OAuth2Request request = new OAuth2Request(parameters, clientId, authorities, true,
+                scope, resourceIds, null, null, null);
         return new OAuth2Authentication(request, user);
     }
 
