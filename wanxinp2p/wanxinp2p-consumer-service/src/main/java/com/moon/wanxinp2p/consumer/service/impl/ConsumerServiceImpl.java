@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.consumer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.account.model.AccountDTO;
 import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
@@ -16,6 +17,8 @@ import com.moon.wanxinp2p.consumer.common.enums.ConsumerErrorCode;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
 import com.moon.wanxinp2p.consumer.mapper.ConsumerMapper;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.Hmily;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import org.springframework.stereotype.Service;
  * @description
  */
 @Service
+@Slf4j
 public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> implements ConsumerService {
 
     // 注入 feign 服务调用接口
@@ -53,6 +57,8 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
      * @return
      */
     @Override
+    // 在此方法上需要标识 @Hmily 注解，指定成功提交与失败回滚的方法
+    @Hmily(confirmMethod = "confirmRegister", cancelMethod = "cancelRegister")
     public void register(ConsumerRegisterDTO consumerRegisterDTO) {
         // 判断用户是否已注册
         if (checkMobile(consumerRegisterDTO.getMobile()) == 1) {
@@ -79,6 +85,28 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
             // 调用失败，抛出业务异常
             throw new BusinessException(ConsumerErrorCode.E_140106);
         }
+    }
+
+    /**
+     * 成功确认方法，在 try 阶段成功后执行。
+     * 注意：Try、Confirm、Cancel 的方法参数必须保持一致。
+     *
+     * @param consumerRegisterDTO
+     */
+    public void confirmRegister(ConsumerRegisterDTO consumerRegisterDTO) {
+        log.info("execute confirmRegister");
+    }
+
+    /**
+     * 失败回滚方法，在 try 阶段出现异常后执行。
+     * 注意：Try、Confirm、Cancel 的方法参数必须保持一致。
+     *
+     * @param consumerRegisterDTO
+     */
+    public void cancelRegister(ConsumerRegisterDTO consumerRegisterDTO) {
+        log.info("execute cancelRegister");
+        // 异常回滚，删除原来新增的记录即可
+        remove(Wrappers.<Consumer>lambdaQuery().eq(Consumer::getMobile, consumerRegisterDTO.getMobile()));
     }
 
     /**

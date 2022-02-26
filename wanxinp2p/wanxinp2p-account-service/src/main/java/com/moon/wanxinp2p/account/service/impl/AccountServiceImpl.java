@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.account.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.account.common.enums.AccountErrorCode;
 import com.moon.wanxinp2p.account.entity.Account;
@@ -14,10 +15,13 @@ import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.PasswordUtil;
+import lombok.extern.slf4j.Slf4j;
+import org.dromara.hmily.annotation.Hmily;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 统一账户业务实现
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
  * @description
  */
 @Service
+@Slf4j
 public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> implements AccountService {
 
     @Autowired
@@ -76,6 +81,9 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
      * @return
      */
     @Override
+    @Transactional  // 本地事务，hmily 只会回滚远程调用时发现异常的事务。这里还是要处理本地事务
+    // 在此方法上需要标识 @Hmily 注解，指定成功提交与失败回滚的方法
+    @Hmily(confirmMethod = "confirmRegister", cancelMethod = "cancelRegister")
     public AccountDTO register(AccountRegisterDTO accountRegisterDTO) {
         // mybatis-plus 操作数据是建立映射的实体类，所以这里 dto 转 Account
         Account account = new Account();
@@ -95,9 +103,36 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         // 新增数据
         this.save(account);
 
+        // 人为模拟出现异常
+        if (accountRegisterDTO.getMobile().equals("12345678910")) {
+            throw new RuntimeException("模拟异常");
+        }
+
         AccountDTO dto = new AccountDTO();
         BeanUtils.copyProperties(account, dto);
         return dto;
+    }
+
+    /**
+     * 成功确认方法，在 try 阶段成功后执行。
+     * 注意：Try、Confirm、Cancel 的方法参数必须保持一致。
+     *
+     * @param registerDTO
+     */
+    public void confirmRegister(AccountRegisterDTO registerDTO) {
+        log.info("execute confirmRegister");
+    }
+
+    /**
+     * 失败回滚方法，在 try 阶段出现异常后执行。
+     * 注意：Try、Confirm、Cancel 的方法参数必须保持一致。
+     *
+     * @param registerDTO
+     */
+    public void cancelRegister(AccountRegisterDTO registerDTO) {
+        log.info("execute cancelRegister");
+        // 异常回滚，删除原来新增的记录即可
+        remove(Wrappers.<Account>lambdaQuery().eq(Account::getUsername, registerDTO.getUsername()));
     }
 
     /**

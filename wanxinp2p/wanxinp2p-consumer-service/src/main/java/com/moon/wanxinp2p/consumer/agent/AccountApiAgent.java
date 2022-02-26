@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.consumer.agent;
 import com.moon.wanxinp2p.api.account.model.AccountDTO;
 import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
+import org.dromara.hmily.annotation.Hmily;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,6 +31,7 @@ public interface AccountApiAgent {
      *  3. 方法的名称不需要与被调用的服务接口名称一致
      */
     @PostMapping(value = "/account/l/accounts")
+    @Hmily
     RestResponse<AccountDTO> register(@RequestBody AccountRegisterDTO accountRegisterDTO);
 
 }
