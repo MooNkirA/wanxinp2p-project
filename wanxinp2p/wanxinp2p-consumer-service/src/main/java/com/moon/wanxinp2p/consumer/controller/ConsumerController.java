@@ -2,6 +2,8 @@ package com.moon.wanxinp2p.consumer.controller;
 
 import com.moon.wanxinp2p.api.consumer.ConsumerApi;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
@@ -47,4 +49,14 @@ public class ConsumerController implements ConsumerApi {
         return RestResponse.success(EncryptUtil.decodeUTF8StringBase64(jsonToken));
     }
 
+    /**
+     * 生成开户请求数据
+     *
+     * @param consumerRequest 开户信息
+     * @return
+     */
+    @Override
+    public RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest) {
+        return null;
+    }
 }
