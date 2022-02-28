@@ -2,9 +2,9 @@ package com.moon.wanxinp2p.depository.interceptor;
 
 import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.common.util.RSAUtil;
-import com.moon.wanxinp2p.depository.common.constant.DepositoryErrorCode;
+import com.moon.wanxinp2p.depository.common.enums.DepositoryErrorCode;
 import com.moon.wanxinp2p.depository.service.ConfigService;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,7 +19,7 @@ import java.io.PrintWriter;
 /**
  * 统一拦截银行存管系统请求数据验签
  */
-@Slf4j
+@Log4j2
 @Component
 public class DepositoryNotifyVerificationInterceptor implements HandlerInterceptor {
 

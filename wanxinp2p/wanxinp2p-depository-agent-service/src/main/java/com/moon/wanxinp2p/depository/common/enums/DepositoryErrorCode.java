@@ -1,4 +1,4 @@
-package com.moon.wanxinp2p.depository.common.constant;
+package com.moon.wanxinp2p.depository.common.enums;
 
 
 import com.moon.wanxinp2p.common.domain.ErrorCode;

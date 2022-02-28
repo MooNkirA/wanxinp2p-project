@@ -1,11 +1,13 @@
 package com.moon.wanxinp2p.consumer.controller;
 
+import com.moon.wanxinp2p.api.account.model.LoginUser;
 import com.moon.wanxinp2p.api.consumer.ConsumerApi;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
+import com.moon.wanxinp2p.consumer.common.util.SecurityUtil;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -55,8 +57,14 @@ public class ConsumerController implements ConsumerApi {
      * @param consumerRequest 开户信息
      * @return
      */
+    @ApiOperation("生成开户请求数据")
+    @ApiImplicitParam(name = "consumerRequest", value = "开户信息", required = true, dataType = "ConsumerRequest", paramType = "body")
+    @PostMapping("/my/consumers")
     @Override
-    public RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest) {
-        return null;
+    public RestResponse<GatewayRequest> createConsumer(@RequestBody ConsumerRequest consumerRequest) {
+        // 从 gateway 转发请求时设置的用户信息数据中，获取用户的手机号
+        LoginUser user = SecurityUtil.getUser();
+        consumerRequest.setMobile(user.getMobile());
+        return consumerService.createConsumer(consumerRequest);
     }
 }

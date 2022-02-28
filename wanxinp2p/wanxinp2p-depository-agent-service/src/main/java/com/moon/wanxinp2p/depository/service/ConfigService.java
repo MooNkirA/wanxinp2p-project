@@ -11,9 +11,9 @@ import org.springframework.stereotype.Service;
 @Service
 @EnableApolloConfig
 public class ConfigService {
+
     @ApolloConfig
     private Config config;
-
 
     /**
      * 银行存管系统服务地址

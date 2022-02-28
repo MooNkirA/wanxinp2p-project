@@ -1,4 +1,4 @@
-package com.moon.wanxinp2p.depository.common.constant;
+package com.moon.wanxinp2p.depository.common.enums;
 
 /**
  * 银行存管系统请求类型枚举

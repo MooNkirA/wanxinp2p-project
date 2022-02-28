@@ -1,27 +1,36 @@
 package com.moon.wanxinp2p.consumer.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.account.model.AccountDTO;
 import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
+import com.moon.wanxinp2p.api.consumer.model.BankCardDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
+import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
 import com.moon.wanxinp2p.consumer.agent.AccountApiAgent;
+import com.moon.wanxinp2p.consumer.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.consumer.common.enums.ConsumerErrorCode;
+import com.moon.wanxinp2p.consumer.entity.BankCard;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
 import com.moon.wanxinp2p.consumer.mapper.ConsumerMapper;
+import com.moon.wanxinp2p.consumer.service.BankCardService;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import lombok.extern.slf4j.Slf4j;
 import org.dromara.hmily.annotation.Hmily;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户业务层接口实现
@@ -38,6 +47,12 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
     // 注入 feign 服务调用接口
     @Autowired
     private AccountApiAgent accountApiAgent;
+
+    @Autowired
+    private BankCardService bankCardService;
+    // 注入 feign 存管代理服务接口
+    @Autowired
+    private DepositoryAgentApiAgent depositoryAgentApiAgent;
 
     /**
      * 检测用户是否存在
@@ -127,6 +142,69 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
         }
 
         return null;
+    }
+
+    /**
+     * 生成开户数据
+     *
+     * @param consumerRequest
+     * @return
+     */
+    @Override
+    @Transactional
+    public RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest) {
+        // 1.判断当前用户是否已经开户，根据用户手机号查询用户表
+        ConsumerDTO consumerDTO = getByMobile(consumerRequest.getMobile());
+
+        if (consumerDTO == null) {
+            // 用户不存在
+            throw new BusinessException(ConsumerErrorCode.E_140101);
+        }
+
+        // 判断 isBindCard（是否绑定银行卡）是否为1
+        if (consumerDTO.getIsBindCard() == 1) {
+            // 已经绑卡
+            throw new BusinessException(ConsumerErrorCode.E_140105);
+        }
+
+        // 2.判断提交过来的银行卡是否已被绑定
+        BankCardDTO bankCardDTO = bankCardService.getByCardNumber(consumerRequest.getCardNumber());
+        if (bankCardDTO != null && StatusCode.STATUS_IN.getCode().compareTo(bankCardDTO.getStatus()) == 0) {
+            throw new BusinessException(ConsumerErrorCode.E_140151);
+        }
+
+        // 3.更新用户的信息
+        consumerRequest.setId(consumerDTO.getId());
+        //产生请求流水号和用户编号
+        consumerRequest.setUserNo(CodeNoUtil.getNo(CodePrefixCode.CODE_CONSUMER_PREFIX));
+        consumerRequest.setRequestNo(CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX));
+        //设置查询条件和需要更新的数据
+        UpdateWrapper<Consumer> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.lambda().eq(Consumer::getMobile, consumerDTO.getMobile());
+        updateWrapper.lambda().set(Consumer::getUserNo, consumerRequest.getUserNo());
+        updateWrapper.lambda().set(Consumer::getRequestNo, consumerRequest.getRequestNo());
+        updateWrapper.lambda().set(Consumer::getFullname, consumerRequest.getFullname());
+        updateWrapper.lambda().set(Consumer::getIdNumber, consumerRequest.getIdNumber());
+        updateWrapper.lambda().set(Consumer::getAuthList, "ALL");
+        update(updateWrapper);
+
+        // 4.保存银行卡信息
+        BankCard bankCard = new BankCard();
+        bankCard.setConsumerId(consumerDTO.getId());
+        bankCard.setBankCode(consumerRequest.getBankCode());
+        bankCard.setCardNumber(consumerRequest.getCardNumber());
+        bankCard.setMobile(consumerRequest.getMobile());
+        bankCard.setStatus(StatusCode.STATUS_OUT.getCode());
+        // 根据用户id查询银行卡信息
+        BankCardDTO existBankCard = bankCardService.getByConsumerId(bankCard.getConsumerId());
+        if (existBankCard != null) {
+            bankCard.setId(existBankCard.getId());
+        }
+        // 新增或更新银行卡信息
+        bankCardService.saveOrUpdate(bankCard);
+
+        // 5.准备数据，发起远程调用，把数据发到存管代理服务
+        return depositoryAgentApiAgent.createConsumer(consumerRequest);
     }
 
 }

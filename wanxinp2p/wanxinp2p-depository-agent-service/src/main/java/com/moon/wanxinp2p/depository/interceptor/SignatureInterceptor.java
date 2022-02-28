@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.common.util.RSAUtil;
 import com.moon.wanxinp2p.depository.service.ConfigService;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -19,7 +20,7 @@ import java.net.URLEncoder;
 /**
  * okHttp3拦截器, 用于数据签名及验签
  */
-@Slf4j
+@Log4j2
 @Service
 public class SignatureInterceptor implements Interceptor {
 

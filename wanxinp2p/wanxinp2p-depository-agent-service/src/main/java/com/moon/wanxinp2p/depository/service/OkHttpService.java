@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.depository.service;
 
 import com.moon.wanxinp2p.depository.interceptor.SignatureInterceptor;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -13,7 +14,7 @@ import java.io.IOException;
 /**
  * okHttp3请求工具类
  */
-@Slf4j
+@Log4j2
 @Service
 public class OkHttpService {
 
