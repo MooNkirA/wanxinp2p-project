@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.depository.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
@@ -63,6 +64,24 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         // 银行存管系统地址。配置在apollo上
         gatewayRequest.setDepositoryUrl(configService.getDepositoryUrl() + "/gateway");
         return gatewayRequest;
+    }
+
+    /**
+     * 根据请求流水号更新请求状态
+     *
+     * @param requestNo
+     * @param requestsStatus
+     * @return
+     */
+    @Override
+    public Boolean modifyRequestStatus(String requestNo, Integer requestsStatus) {
+        // 使用 LambdaUpdateWrapper 方式根据流水号更新状态与确认时间字段
+        return this.update(
+                Wrappers.<DepositoryRecord>lambdaUpdate()
+                        .eq(DepositoryRecord::getRequestNo, requestNo)
+                        .set(DepositoryRecord::getRequestStatus, requestsStatus)
+                        .set(DepositoryRecord::getConfirmDate, LocalDateTime.now())
+        );
     }
 
     /**

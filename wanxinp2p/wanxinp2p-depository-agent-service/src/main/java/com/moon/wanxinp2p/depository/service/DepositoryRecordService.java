@@ -23,4 +23,13 @@ public interface DepositoryRecordService extends IService<DepositoryRecord> {
      */
     GatewayRequest createConsumer(ConsumerRequest consumerRequest);
 
+
+    /**
+     * 根据请求流水号更新请求状态
+     *
+     * @param requestNo
+     * @param requestsStatus
+     * @return
+     */
+    Boolean modifyRequestStatus(String requestNo, Integer requestsStatus);
 }
