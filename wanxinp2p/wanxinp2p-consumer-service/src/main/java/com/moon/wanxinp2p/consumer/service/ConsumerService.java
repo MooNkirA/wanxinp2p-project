@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.consumer.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
@@ -40,5 +41,13 @@ public interface ConsumerService extends IService<Consumer> {
      * @return
      */
     RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest);
+
+    /**
+     * 更新开户结果
+     *
+     * @param response
+     * @return
+     */
+    Boolean modifyResult(DepositoryConsumerResponse response);
 
 }

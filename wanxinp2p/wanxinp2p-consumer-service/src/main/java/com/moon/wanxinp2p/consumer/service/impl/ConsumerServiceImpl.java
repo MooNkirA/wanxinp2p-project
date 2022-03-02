@@ -10,10 +10,12 @@ import com.moon.wanxinp2p.api.consumer.model.BankCardDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
+import com.moon.wanxinp2p.common.enums.DepositoryReturnCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
@@ -207,4 +209,41 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
         return depositoryAgentApiAgent.createConsumer(consumerRequest);
     }
 
+    /**
+     * 更新开户结果
+     *
+     * @param response
+     * @return
+     */
+    @Override
+    @Transactional
+    public Boolean modifyResult(DepositoryConsumerResponse response) {
+        // 根据响应码来判断状态 成功时 status=1；失败时 status=2
+        int status = DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(response.getRespCode())
+                ? StatusCode.STATUS_IN.getCode() : StatusCode.STATUS_FAIL.getCode();
+
+        // 根据请求号（requestNo）查询用户信息
+        Consumer consumer = getOne(Wrappers.<Consumer>lambdaQuery().eq(Consumer::getRequestNo, response.getRequestNo()));
+
+        if (consumer != null) {
+            Long consumerId = consumer.getId();
+
+            // 更新用户信息状态 （consumer 表的 STATUS 和 IS_BIND_CARD）
+            this.update(Wrappers.<Consumer>lambdaUpdate()
+                    .eq(Consumer::getId, consumerId)
+                    .set(Consumer::getIsBindCard, status)
+                    .set(Consumer::getStatus, status)
+            );
+
+            // 更新银行卡信息状态
+            return bankCardService.update(Wrappers.<BankCard>lambdaUpdate()
+                    .eq(BankCard::getConsumerId, consumerId)
+                    .set(BankCard::getBankCode, response.getBankCode())
+                    .set(BankCard::getBankName, response.getBankName())
+                    .set(BankCard::getStatus, status)
+            );
+        }
+
+        return false;
+    }
 }

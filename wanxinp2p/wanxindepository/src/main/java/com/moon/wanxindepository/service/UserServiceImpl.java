@@ -23,9 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * <p>
  * 存管用户信息表 服务实现类
- * </p>
  */
 @Slf4j
 @Service

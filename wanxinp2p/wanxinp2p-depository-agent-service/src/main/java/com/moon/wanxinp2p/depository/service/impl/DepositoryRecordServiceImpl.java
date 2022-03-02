@@ -5,10 +5,11 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.common.constants.CommonConstants;
+import com.moon.wanxinp2p.common.constants.ServiceNameConstants;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.common.util.RSAUtil;
-import com.moon.wanxinp2p.depository.common.constants.DepositoryConstants;
 import com.moon.wanxinp2p.depository.common.enums.DepositoryRequestTypeCode;
 import com.moon.wanxinp2p.depository.entity.DepositoryRecord;
 import com.moon.wanxinp2p.depository.mapper.DepositoryRecordMapper;
@@ -49,12 +50,12 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         // 将开户的数据转成json字符串
         String reqData = JSON.toJSONString(consumerRequest);
         // 调用工具类方法，使用私钥对 json 字符串签名
-        String sign = RSAUtil.sign(reqData, configService.getP2pPrivateKey(), DepositoryConstants.UTF8);
+        String sign = RSAUtil.sign(reqData, configService.getP2pPrivateKey(), CommonConstants.UTF8);
 
         // 创建接口返回实体
         GatewayRequest gatewayRequest = new GatewayRequest();
         // 请求的存管接口名，详见《银行存管接口说明.pdf》
-        gatewayRequest.setServiceName(DepositoryConstants.INTERFACT_NAME_REGISTER);
+        gatewayRequest.setServiceName(ServiceNameConstants.NAME_PERSONAL_REGISTER);
         // 平台编号，平台与存管系统签约时获取。配置在apollo上
         gatewayRequest.setPlatformNo(configService.getP2pCode());
         // 业务数据报文，json格式。进行转码
@@ -96,7 +97,7 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         // 请求类型
         record.setRequestType(DepositoryRequestTypeCode.CONSUMER_CREATE.getCode());
         // 业务实体类型
-        record.setObjectType(DepositoryConstants.OBJECT_TYPE_CONSUMER);
+        record.setObjectType(CommonConstants.OBJECT_TYPE_CONSUMER);
         // 关联业务实体标识
         record.setObjectId(consumerRequest.getId());
         // 请求时间
