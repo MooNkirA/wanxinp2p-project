@@ -1,7 +1,10 @@
 package com.moon.wanxinp2p.api.consumer;
 
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
+import org.springframework.lang.Nullable;
 
 /**
  * 用户中心接口API
@@ -19,6 +22,14 @@ public interface ConsumerApi {
      * @param consumerRegisterDTO
      * @return
      */
-    RestResponse register(ConsumerRegisterDTO consumerRegisterDTO);
+    RestResponse<Nullable> register(ConsumerRegisterDTO consumerRegisterDTO);
+
+    /**
+     * 生成开户请求数据
+     *
+     * @param consumerRequest 开户信息
+     * @return
+     */
+    RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest);
 
 }

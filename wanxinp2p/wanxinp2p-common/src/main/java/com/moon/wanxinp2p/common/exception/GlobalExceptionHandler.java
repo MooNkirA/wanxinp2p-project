@@ -78,7 +78,7 @@ public class GlobalExceptionHandler {
             return function.apply(e);
         } else {
             // 记录其他未知异常日志
-            LOGGER.error("【系统异常】{}", e.getMessage());
+            LOGGER.error("【系统异常】{}", e.getMessage(), e);
             // 其他未知异常，统一返回99999异常
             return new RestResponse<>(CommonErrorCode.UNKOWN.getCode(), CommonErrorCode.UNKOWN.getDesc());
         }
