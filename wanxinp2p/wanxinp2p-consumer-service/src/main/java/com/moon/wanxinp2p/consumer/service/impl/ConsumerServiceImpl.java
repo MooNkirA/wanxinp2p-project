@@ -132,7 +132,8 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
      * @param mobile 手机号
      * @return
      */
-    private ConsumerDTO getByMobile(String mobile) {
+    @Override
+    public ConsumerDTO getByMobile(String mobile) {
         // 根据手机号查询
         Consumer consumer = this.getOne(new QueryWrapper<Consumer>().lambda().eq(Consumer::getMobile, mobile));
 
@@ -160,7 +161,7 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
 
         if (consumerDTO == null) {
             // 用户不存在
-            throw new BusinessException(ConsumerErrorCode.E_140101);
+            throw new BusinessException(CommonErrorCode.E_140101);
         }
 
         // 判断 isBindCard（是否绑定银行卡）是否为1

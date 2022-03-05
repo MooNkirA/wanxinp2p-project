@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.consumer.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
@@ -50,4 +51,11 @@ public interface ConsumerService extends IService<Consumer> {
      */
     Boolean modifyResult(DepositoryConsumerResponse response);
 
+    /**
+     * 通过手机号获取当前用户信息
+     *
+     * @param mobile
+     * @return
+     */
+    ConsumerDTO getByMobile(String mobile);
 }

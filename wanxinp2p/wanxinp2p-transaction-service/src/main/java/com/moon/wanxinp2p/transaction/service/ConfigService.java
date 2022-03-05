@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 @Service
 @EnableApolloConfig
 public class ConfigService {
+
     @ApolloConfig
     private Config config;
 

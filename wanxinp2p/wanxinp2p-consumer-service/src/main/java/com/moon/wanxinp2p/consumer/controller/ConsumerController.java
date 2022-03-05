@@ -2,6 +2,7 @@ package com.moon.wanxinp2p.consumer.controller;
 
 import com.moon.wanxinp2p.api.account.model.LoginUser;
 import com.moon.wanxinp2p.api.consumer.ConsumerApi;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
@@ -15,6 +16,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -66,5 +68,33 @@ public class ConsumerController implements ConsumerApi {
         LoginUser user = SecurityUtil.getUser();
         consumerRequest.setMobile(user.getMobile());
         return consumerService.createConsumer(consumerRequest);
+    }
+
+    /**
+     * 根据手机号获得当前登录用户（用于其他微服务远程调用）
+     *
+     * @param mobile
+     * @return
+     */
+    @ApiOperation("获取登录用户信息")
+    @GetMapping("/l/currConsumer/{mobile}")
+    @Override
+    public RestResponse<ConsumerDTO> getCurrConsumer(@PathVariable("mobile") String mobile) {
+        // 调用业务层根据手机号查询方法
+        return RestResponse.success(consumerService.getByMobile(mobile));
+    }
+
+    /**
+     * 获取当前登录用户（用于前端直接请求用户服务）
+     *
+     * @return
+     */
+    @ApiOperation("获取登录用户信息")
+    @GetMapping("/my/consumers")
+    @Override
+    public RestResponse<ConsumerDTO> getMyConsumer() {
+        // 使用工具类，从请求域中获取到用户手机号
+        ConsumerDTO dto = consumerService.getByMobile(SecurityUtil.getUser().getMobile());
+        return RestResponse.success(dto);
     }
 }
