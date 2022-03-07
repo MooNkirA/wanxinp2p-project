@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Api(value = "银行存管系统通知服务", tags = "depository-agent")
 @RestController
+@Slf4j
 public class DepositoryNotifyController {
 
     @Autowired
@@ -49,6 +51,7 @@ public class DepositoryNotifyController {
         DepositoryConsumerResponse depositoryConsumerResponse = JSON.parseObject(EncryptUtil.decodeUTF8StringBase64(reqData), DepositoryConsumerResponse.class);
         // 1.更新请求记录的状态
         depositoryRecordService.modifyRequestStatus(depositoryConsumerResponse.getRequestNo(), depositoryConsumerResponse.getStatus());
+        log.info("更新请求记录状态为 {} ....", depositoryConsumerResponse.getStatus());
 
         // 2.发送异步消息给用户中心服务
         gatewayMessageProducer.personalRegister(depositoryConsumerResponse);

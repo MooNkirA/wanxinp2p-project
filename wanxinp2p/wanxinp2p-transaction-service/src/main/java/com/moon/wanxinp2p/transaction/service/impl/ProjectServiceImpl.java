@@ -1,9 +1,14 @@
 package com.moon.wanxinp2p.transaction.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
+import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
@@ -24,8 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 交易中心 标的服务接口实现
@@ -103,4 +111,100 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         return projectDTO;
     }
 
+    /**
+     * 根据分页条件检索标的信息
+     *
+     * @param projectQueryDTO 封装查询条件
+     * @param order           排序的方式
+     * @param pageNo          当前页
+     * @param pageSize        每页大小
+     * @param sortBy          排序的字段
+     * @return
+     */
+    @Override
+    public PageVO<ProjectDTO> queryProjectsByQueryDTO(ProjectQueryDTO projectQueryDTO, String order,
+                                                      Integer pageNo, Integer pageSize, String sortBy) {
+        // 构建查询条件
+        QueryWrapper<Project> queryWrapper = createQueryWrapper(projectQueryDTO, order, sortBy);
+
+        // 构造分页对象
+        Page<Project> page = new Page<>(pageNo, pageSize);
+
+        // 执行查询
+        IPage<Project> iPage = page(page, queryWrapper);
+
+        // 结果类型转换
+        List<ProjectDTO> projectDTOList = convertProjectEntitysToDTOs(iPage.getRecords());
+        // 封装结果
+        return new PageVO<>(projectDTOList, iPage.getTotal(), pageNo, pageSize);
+    }
+
+    /**
+     * 构建查询条件
+     *
+     * @param projectQueryDTO
+     * @param order
+     * @param sortBy
+     * @return
+     */
+    private QueryWrapper<Project> createQueryWrapper(ProjectQueryDTO projectQueryDTO, String order, String sortBy) {
+        // 构造查询条件
+        QueryWrapper<Project> queryWrapper = new QueryWrapper<>();
+        LambdaQueryWrapper<Project> lambdaQueryWrapper = queryWrapper.lambda();
+
+        // 标的类型
+        if (StringUtils.hasText(projectQueryDTO.getType())) {
+            lambdaQueryWrapper.eq(Project::getType, projectQueryDTO.getType());
+        }
+        // 起止年化利率(投资人) -- 区间
+        if (null != projectQueryDTO.getStartAnnualRate()) {
+            lambdaQueryWrapper.ge(Project::getAnnualRate, projectQueryDTO.getStartAnnualRate());
+        }
+        if (null != projectQueryDTO.getEndAnnualRate()) {
+            lambdaQueryWrapper.le(Project::getAnnualRate, projectQueryDTO.getEndAnnualRate());
+        }
+        // 借款期限 -- 区间
+        if (null != projectQueryDTO.getStartPeriod()) {
+            lambdaQueryWrapper.ge(Project::getPeriod, projectQueryDTO.getStartPeriod());
+        }
+        if (null != projectQueryDTO.getEndPeriod()) {
+            lambdaQueryWrapper.le(Project::getPeriod, projectQueryDTO.getEndPeriod());
+        }
+        // 标的状态
+        if (StringUtils.hasText(projectQueryDTO.getProjectStatus())) {
+            lambdaQueryWrapper.eq(Project::getProjectStatus,
+                    projectQueryDTO.getProjectStatus());
+        }
+
+        // 排序
+        if (StringUtils.hasText(order) && StringUtils.hasText(sortBy)) {
+            if ("asc".equalsIgnoreCase(order)) {
+                queryWrapper.orderByAsc(sortBy);
+            } else if ("desc".equalsIgnoreCase(order)) {
+                queryWrapper.orderByDesc(sortBy);
+            }
+        } else {
+            // 没有上送排序规则，则按创建日期倒序
+            lambdaQueryWrapper.orderByDesc(Project::getCreateDate);
+        }
+
+        return queryWrapper;
+    }
+
+    /**
+     * entity 转 dto
+     *
+     * @param projectList
+     * @return
+     */
+    private List<ProjectDTO> convertProjectEntitysToDTOs(List<Project> projectList) {
+        if (projectList == null) {
+            return null;
+        }
+        return projectList.stream().map(p -> {
+            ProjectDTO dto = new ProjectDTO();
+            BeanUtils.copyProperties(p, dto);
+            return dto;
+        }).collect(Collectors.toList());
+    }
 }
