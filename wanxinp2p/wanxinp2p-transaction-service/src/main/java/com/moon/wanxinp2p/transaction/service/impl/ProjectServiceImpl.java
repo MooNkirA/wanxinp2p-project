@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.transaction.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
@@ -12,13 +13,16 @@ import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
+import com.moon.wanxinp2p.common.enums.DepositoryReturnCode;
 import com.moon.wanxinp2p.common.enums.ProjectCode;
 import com.moon.wanxinp2p.common.enums.RepaymentWayCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
 import com.moon.wanxinp2p.transaction.agent.ConsumerApiAgent;
+import com.moon.wanxinp2p.transaction.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.transaction.common.enums.ProjectTypeCode;
+import com.moon.wanxinp2p.transaction.common.enums.TransactionErrorCode;
 import com.moon.wanxinp2p.transaction.common.utils.SecurityUtil;
 import com.moon.wanxinp2p.transaction.entity.Project;
 import com.moon.wanxinp2p.transaction.mapper.ProjectMapper;
@@ -29,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
@@ -52,6 +57,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Autowired
     private ConfigService configService;
+
+    @Autowired
+    private DepositoryAgentApiAgent depositoryAgentApiAgent;
 
     /**
      * 创建标的
@@ -206,5 +214,47 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             BeanUtils.copyProperties(p, dto);
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 管理员审核标的信息
+     *
+     * @param id
+     * @param approveStatus
+     * @return
+     */
+    @Override
+    @Transactional
+    public String projectsApprovalStatus(Long id, String approveStatus) {
+        // 根据 id 查询标的信息
+        Project project = this.getById(id);
+        // 转在 dto 传输对象
+        ProjectDTO dto = new ProjectDTO();
+        BeanUtils.copyProperties(project, dto);
+
+        // 生成流水号(不存在才生成)
+        if (StringUtils.isEmpty(dto.getRequestNo())) {
+            dto.setRequestNo(CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX));
+            // 更新 project_0/project_1 表的 REQUEST_NO 字段
+            update(Wrappers.<Project>lambdaUpdate()
+                    .set(Project::getRequestNo, dto.getRequestNo())
+                    .eq(Project::getId, id)
+            );
+        }
+
+        // 通过 feign 远程访问存管代理服务接口，传递标的信息传
+        RestResponse<String> response = depositoryAgentApiAgent.createProject(dto);
+
+        // 失败则抛异常（根据银行存管系统文档返回说明，成功则返回"00000"）
+        if (!DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(response.getResult())) {
+            throw new BusinessException(TransactionErrorCode.E_150113);
+        }
+
+        // 响应结果是成功，则修改状态
+        update(Wrappers.<Project>lambdaUpdate()
+                .set(Project::getStatus, Integer.parseInt(approveStatus))
+                .eq(Project::getId, id)
+        );
+        return "success";
     }
 }

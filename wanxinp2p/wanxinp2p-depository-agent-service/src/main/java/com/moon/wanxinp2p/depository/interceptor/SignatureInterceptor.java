@@ -6,7 +6,6 @@ import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.common.util.RSAUtil;
 import com.moon.wanxinp2p.depository.service.ConfigService;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
 import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;

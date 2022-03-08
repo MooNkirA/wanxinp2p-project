@@ -11,7 +11,9 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -72,4 +74,24 @@ public class TransactionController implements TransactionApi {
                                                           Integer pageNo, Integer pageSize, String sortBy) {
         return RestResponse.success(projectService.queryProjectsByQueryDTO(projectQueryDTO, order, pageNo, pageSize, sortBy));
     }
+
+    /**
+     * 管理员审核标的信息
+     *
+     * @param id
+     * @param approveStatus
+     * @return
+     */
+    @ApiOperation("管理员审核标的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "标的id", required = true, dataType = "long", paramType = "path"),
+            @ApiImplicitParam(name = "approveStatus", value = "审批状态", required = true, dataType = "ref", paramType = "path")
+    })
+    @PutMapping("/m/projects/{id}/projectStatus/{approveStatus}")
+    @Override
+    public RestResponse<String> projectsApprovalStatus(@PathVariable("id") Long id,
+                                                       @PathVariable("approveStatus") String approveStatus) {
+        return RestResponse.success(projectService.projectsApprovalStatus(id, approveStatus));
+    }
+
 }

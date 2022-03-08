@@ -2,7 +2,10 @@ package com.moon.wanxinp2p.depository.controller;
 
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.DepositoryAgentApi;
+import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
+import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.depository.service.DepositoryRecordService;
 import io.swagger.annotations.Api;
@@ -41,5 +44,27 @@ public class DepositoryAgentController implements DepositoryAgentApi {
     @Override
     public RestResponse<GatewayRequest> createConsumer(@RequestBody ConsumerRequest consumerRequest) {
         return RestResponse.success(depositoryRecordService.createConsumer((consumerRequest)));
+    }
+
+    /**
+     * 向银行存管系统发送标的信息
+     *
+     * @param projectDTO
+     * @return
+     */
+    @ApiOperation(value = "向存管系统发送标的信息")
+    @ApiImplicitParam(name = "projectDTO", value = "向存管系统发送标的信息",
+            required = true, dataType = "ProjectDTO", paramType = "body")
+    @PostMapping("/l/createProject")
+    @Override
+    public RestResponse<String> createProject(@RequestBody ProjectDTO projectDTO) {
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = depositoryRecordService.createProject(projectDTO);
+        // 获取响应数据
+        DepositoryBaseResponse respData = responseDTO.getRespData();
+        // 设置响应结果和响应信息
+        RestResponse<String> response = new RestResponse<>();
+        response.setResult(respData.getRespCode());
+        response.setMsg(respData.getRespMsg());
+        return response;
     }
 }

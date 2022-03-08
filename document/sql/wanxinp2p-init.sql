@@ -263,6 +263,7 @@ CREATE TABLE `project_0` (
   `CREATE_DATE` datetime DEFAULT NULL COMMENT '创建时间',
   `STATUS` tinyint(1) DEFAULT NULL COMMENT '可用状态',
   `IS_ASSIGNMENT` tinyint(4) DEFAULT NULL COMMENT '是否是债权出让标',
+  `REQUEST_NO` varchar(50) DEFAULT NULL COMMENT '投标/债权转让 请求流水号',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='标的信息表';
 
@@ -285,6 +286,7 @@ CREATE TABLE `project_1` (
   `CREATE_DATE` datetime DEFAULT NULL COMMENT '创建时间',
   `STATUS` tinyint(4) DEFAULT NULL COMMENT '可用状态',
   `IS_ASSIGNMENT` tinyint(4) DEFAULT NULL COMMENT '是否是债权出让标',
+  `REQUEST_NO` varchar(50) DEFAULT NULL COMMENT '投标/债权转让 请求流水号',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='标的信息表';
 
@@ -375,6 +377,7 @@ CREATE TABLE `project_0` (
   `CREATE_DATE` datetime DEFAULT NULL COMMENT '创建时间',
   `STATUS` tinyint(4) DEFAULT NULL COMMENT '可用状态',
   `IS_ASSIGNMENT` tinyint(4) DEFAULT NULL COMMENT '是否是债权出让标',
+  `REQUEST_NO` varchar(50) DEFAULT NULL COMMENT '投标/债权转让 请求流水号',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='标的信息表';
 
@@ -397,6 +400,7 @@ CREATE TABLE `project_1` (
   `CREATE_DATE` datetime DEFAULT NULL COMMENT '创建时间',
   `STATUS` tinyint(4) DEFAULT NULL COMMENT '可用状态',
   `IS_ASSIGNMENT` tinyint(4) DEFAULT NULL COMMENT '是否是债权出让标',
+  `REQUEST_NO` varchar(50) DEFAULT NULL COMMENT '投标/债权转让 请求流水号',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='标的信息表';
 
@@ -510,6 +514,7 @@ CREATE TABLE `depository_record` (
   `IS_SYN` tinyint(1) DEFAULT NULL COMMENT '是否是同步调用',
   `REQUEST_STATUS` tinyint(1) DEFAULT NULL COMMENT '数据同步状态',
   `CONFIRM_DATE` datetime DEFAULT NULL COMMENT '消息确认时间',
+  `RESPONSE_DATA` varchar(255) DEFAULT NULL COMMENT '银行存管系统响应内容',
   PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='存管交易记录表';
 
