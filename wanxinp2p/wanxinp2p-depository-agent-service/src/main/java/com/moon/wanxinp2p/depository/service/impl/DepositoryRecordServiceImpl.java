@@ -2,6 +2,7 @@ package com.moon.wanxinp2p.depository.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
@@ -10,6 +11,7 @@ import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.ProjectRequestDataDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
+import com.moon.wanxinp2p.common.cache.Cache;
 import com.moon.wanxinp2p.common.constants.CommonConstants;
 import com.moon.wanxinp2p.common.constants.ServiceNameConstants;
 import com.moon.wanxinp2p.common.enums.StatusCode;
@@ -26,7 +28,6 @@ import com.moon.wanxinp2p.depository.service.OkHttpService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -47,6 +48,9 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
 
     @Autowired
     private OkHttpService okHttpService;
+
+    @Autowired
+    private Cache cache;
 
     /**
      * 开通存管账户
@@ -127,18 +131,24 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
      * @return
      */
     @Override
-    @Transactional
     public DepositoryResponseDTO<DepositoryBaseResponse> createProject(ProjectDTO projectDTO) {
-        // 1. 本地保存交易记录
+        // 1. 创建 DepositoryRecord 记录对象，设置必要的属性
         DepositoryRecord depositoryRecord = new DepositoryRecord()
                 .setRequestNo(projectDTO.getRequestNo()) // 设置请求流水号
                 .setRequestType(DepositoryRequestTypeCode.CREATE.getCode()) // 设置请求类型
                 .setObjectType("Project") // 设置关联业务实体类型
-                .setObjectId(projectDTO.getId()) // 设置关联业务实体标识
-                .setCreateDate(LocalDateTime.now()) // 设置请求时间
-                .setRequestStatus(StatusCode.STATUS_OUT.getCode()); // 设置数据同步状态
-        // 保存数据
-        save(depositoryRecord);
+                .setObjectId(projectDTO.getId()); // 设置关联业务实体标识
+
+        // 不直接保存交易，而是调用幂等性处理方法
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = this.handleIdempotent(depositoryRecord);
+        // 判断幂等性处理后返回不空，则说明已经请求银行存管系统并得到响应结果
+        if (responseDTO != null) {
+            // 直接返回结果即可
+            return responseDTO;
+        }
+
+        // 返回结果为空，则说明第1次请求，这里再次查询，确保是最新的交易记录
+        depositoryRecord = this.getEntityByRequestNo(projectDTO.getRequestNo());
 
         // 2. 签名数据，将 ProjectDTO 转换为银行存管系统的请求类型 ProjectRequestDataDTO
         ProjectRequestDataDTO requestDataDTO = new ProjectRequestDataDTO();
@@ -189,5 +199,65 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         }
 
         return depositoryResponse;
+    }
+
+    /**
+     * 实现幂等性
+     *
+     * @param record 交易记录
+     * @return
+     */
+    private DepositoryResponseDTO<DepositoryBaseResponse> handleIdempotent(DepositoryRecord record) {
+        // 1. 根据 requestNo 进行查询
+        String requestNo = record.getRequestNo();
+        DepositoryRecord depositoryRecord = this.getEntityByRequestNo(requestNo);
+
+        // 2. 判断数据库的交易记录是否存在
+        if (depositoryRecord == null) {
+            // 不存在，则补全属性值，
+            record.setCreateDate(LocalDateTime.now()); // 设置请求时间
+            record.setRequestStatus(StatusCode.STATUS_OUT.getCode()); // 设置数据同步状态
+            // 保存交易记录
+            this.save(record);
+            // 因为银行存管系统此时并没有记录，所以直接返回空
+            return null;
+        }
+
+        // 3. 判断交易记录，如果是未同步状态，则说明是重复点击，重复请求的情况
+        if (StatusCode.STATUS_OUT.getCode().compareTo(depositoryRecord.getRequestStatus()) == 0) {
+            /*
+             * 利用redis的原子性，争夺执行权。调用 redis 的 incrBy 自增命令。
+             * 如果 requestNo 不存在则返回1；如果已经存在，则会返回（requestNo已存在个数+1）
+             */
+            Long count = cache.incrBy(requestNo, 1L);
+
+            if (count == 1) {
+                // 说明当前是第1次请求
+                cache.expire(requestNo, 5); // 设置 requestNo 有效期5秒
+                // 因为银行存管系统此时并没有记录，所以直接返回空
+                return null;
+            } else if (count > 1) {
+                // 若count大于1，说明已有线程在执行该操作，直接返回“正在处理”
+                throw new BusinessException(DepositoryErrorCode.E_160103);
+            }
+        }
+
+        /*
+         * 4. 交易记录已经存在，并且状态是“已同步”/"同步失败"，说明已经请求银行存管系统并且返回。
+         *   则获取表中的 RESPONSE_DATA 字段，转成 DepositoryResponseDTO<DepositoryBaseResponse> 返回即可
+         */
+        return JSON.parseObject(depositoryRecord.getResponseData(),
+                new TypeReference<DepositoryResponseDTO<DepositoryBaseResponse>>() {
+                });
+    }
+
+    /**
+     * 根据请求流水号查询交易信息
+     *
+     * @param requestNo 请求流水号
+     * @return
+     */
+    private DepositoryRecord getEntityByRequestNo(String requestNo) {
+        return getOne(new QueryWrapper<DepositoryRecord>().lambda().eq(DepositoryRecord::getRequestNo, requestNo));
     }
 }

@@ -224,7 +224,6 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
      * @return
      */
     @Override
-    @Transactional
     public String projectsApprovalStatus(Long id, String approveStatus) {
         // 根据 id 查询标的信息
         Project project = this.getById(id);
@@ -242,7 +241,7 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             );
         }
 
-        // 通过 feign 远程访问存管代理服务接口，传递标的信息传
+        // 通过 feign 远程访问存管代理服务接口，传递标的信息
         RestResponse<String> response = depositoryAgentApiAgent.createProject(dto);
 
         // 失败则抛异常（根据银行存管系统文档返回说明，成功则返回"00000"）
