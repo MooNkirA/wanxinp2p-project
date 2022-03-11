@@ -20,6 +20,7 @@ import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
 import com.moon.wanxinp2p.transaction.agent.ConsumerApiAgent;
+import com.moon.wanxinp2p.transaction.agent.ContentSearchApiAgent;
 import com.moon.wanxinp2p.transaction.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.transaction.common.enums.ProjectTypeCode;
 import com.moon.wanxinp2p.transaction.common.enums.TransactionErrorCode;
@@ -33,10 +34,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +61,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Autowired
     private DepositoryAgentApiAgent depositoryAgentApiAgent;
+
+    @Autowired
+    private ContentSearchApiAgent contentSearchApiAgent;
 
     /**
      * 创建标的
@@ -255,5 +259,50 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 .eq(Project::getId, id)
         );
         return "success";
+    }
+
+    /**
+     * 标的信息检索
+     *
+     * @param projectQueryDTO
+     * @param order
+     * @param pageNo
+     * @param pageSize
+     * @param sortBy
+     * @return
+     */
+    @Override
+    public PageVO<ProjectDTO> queryProjects(ProjectQueryDTO projectQueryDTO, String order,
+                                            Integer pageNo, Integer pageSize, String sortBy) {
+        RestResponse<PageVO<ProjectDTO>> response = contentSearchApiAgent
+                .queryProjectIndex(projectQueryDTO, pageNo, pageSize, sortBy, order);
+        if (response.isSuccessful()) {
+            return response.getResult();
+        } else {
+            log.error("标的信息检索错误：{}", response.getMsg());
+            throw new BusinessException(CommonErrorCode.UNKOWN);
+        }
+    }
+
+    /**
+     * 通过ids获取多个标的
+     *
+     * @param ids 多个标的id字符串，不同id之间使用逗号分隔
+     * @return
+     */
+    @Override
+    public List<ProjectDTO> queryProjectsIds(String ids) {
+        // 查询标的信息
+        QueryWrapper<Project> queryWrapper = new QueryWrapper<>();
+        // 将多个标的id字符串转成数组
+        List<Long> list = Arrays.stream(ids.split(",")).map(Long::parseLong).collect(Collectors.toList());
+
+
+
+
+        // 转换成 dto 类型对象
+
+
+        return null;
     }
 }

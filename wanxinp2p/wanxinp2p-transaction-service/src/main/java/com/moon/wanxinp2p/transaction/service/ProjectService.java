@@ -4,6 +4,8 @@ import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 
+import java.util.List;
+
 /**
  * 交易中心 标的服务接口
  *
@@ -43,4 +45,26 @@ public interface ProjectService {
      * @return
      */
     String projectsApprovalStatus(Long id, String approveStatus);
+
+    /**
+     * 标的信息检索
+     *
+     * @param projectQueryDTO
+     * @param order
+     * @param pageNo
+     * @param pageSize
+     * @param sortBy
+     * @return
+     */
+    PageVO<ProjectDTO> queryProjects(ProjectQueryDTO projectQueryDTO, String order,
+                                     Integer pageNo, Integer pageSize, String sortBy);
+
+    /**
+     * 通过ids获取多个标的
+     *
+     * @param ids 多个标的id字符串，不同id之间使用逗号分隔
+     * @return
+     */
+    List<ProjectDTO> queryProjectsIds(String ids);
+
 }

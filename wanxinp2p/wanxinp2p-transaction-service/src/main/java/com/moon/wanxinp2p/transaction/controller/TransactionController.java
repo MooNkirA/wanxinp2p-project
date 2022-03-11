@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.transaction.controller;
 import com.moon.wanxinp2p.api.transaction.TransactionApi;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.transaction.service.ProjectService;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 /**
  * 交易服务接口
@@ -94,4 +97,49 @@ public class TransactionController implements TransactionApi {
         return RestResponse.success(projectService.projectsApprovalStatus(id, approveStatus));
     }
 
+    /**
+     * 标的信息快速检索
+     *
+     * @param projectQueryDTO
+     * @param pageNo
+     * @param pageSize
+     * @param sortBy
+     * @param order
+     * @return
+     */
+    @ApiOperation("从ES检索标的信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "projectQueryDTO", value = "标的信息条件对象", required = true, dataType = "ProjectQueryDTO", paramType = "body"),
+            @ApiImplicitParam(name = "order", value = "顺序", dataType = "string", paramType = "query"),
+            @ApiImplicitParam(name = "pageNo", value = "页码", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "pageSize", value = "每页记录数", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(name = "sortBy", value = "排序字段", dataType = "string", paramType = "query")})
+    @PostMapping("/projects/indexes/q")
+    @Override
+    public RestResponse<PageVO<ProjectDTO>> searchProjects(@RequestBody ProjectQueryDTO projectQueryDTO,
+                                                           Integer pageNo, Integer pageSize, String sortBy, String order) {
+        return RestResponse.success(projectService.queryProjects(projectQueryDTO, order, pageNo, pageSize, sortBy));
+    }
+
+    /**
+     * 通过ids获取多个标的
+     *
+     * @param ids
+     * @return
+     */
+    @Override
+    public RestResponse<List<ProjectDTO>> queryProjectsIds(String ids) {
+        return null;
+    }
+
+    /**
+     * 根据标的id查询投标记录
+     *
+     * @param id 标的id
+     * @return
+     */
+    @Override
+    public RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(Long id) {
+        return null;
+    }
 }

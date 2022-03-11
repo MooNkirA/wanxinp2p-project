@@ -2,8 +2,11 @@ package com.moon.wanxinp2p.api.transaction;
 
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
+
+import java.util.List;
 
 /**
  * 交易中心服务API
@@ -44,4 +47,33 @@ public interface TransactionApi {
      * @return
      */
     RestResponse<String> projectsApprovalStatus(Long id, String approveStatus);
+
+    /**
+     * 标的信息快速检索
+     *
+     * @param projectQueryDTO
+     * @param pageNo
+     * @param pageSize
+     * @param sortBy
+     * @param order
+     * @return
+     */
+    RestResponse<PageVO<ProjectDTO>> searchProjects(ProjectQueryDTO projectQueryDTO,
+                                                    Integer pageNo, Integer pageSize, String sortBy, String order);
+
+    /**
+     * 通过ids获取多个标的
+     *
+     * @param ids 多个标的id，使用逗号分隔的字符串
+     * @return
+     */
+    RestResponse<List<ProjectDTO>> queryProjectsIds(String ids);
+
+    /**
+     * 根据标的id查询投标记录
+     *
+     * @param id 标的id
+     * @return
+     */
+    RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(Long id);
 }
