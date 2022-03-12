@@ -26,7 +26,9 @@ import com.moon.wanxinp2p.transaction.common.enums.ProjectTypeCode;
 import com.moon.wanxinp2p.transaction.common.enums.TransactionErrorCode;
 import com.moon.wanxinp2p.transaction.common.utils.SecurityUtil;
 import com.moon.wanxinp2p.transaction.entity.Project;
+import com.moon.wanxinp2p.transaction.entity.Tender;
 import com.moon.wanxinp2p.transaction.mapper.ProjectMapper;
+import com.moon.wanxinp2p.transaction.mapper.TenderMapper;
 import com.moon.wanxinp2p.transaction.model.LoginUser;
 import com.moon.wanxinp2p.transaction.service.ConfigService;
 import com.moon.wanxinp2p.transaction.service.ProjectService;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -64,6 +67,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Autowired
     private ContentSearchApiAgent contentSearchApiAgent;
+
+    @Autowired
+    private TenderMapper tenderMapper;
 
     /**
      * 创建标的
@@ -294,15 +300,44 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
     public List<ProjectDTO> queryProjectsIds(String ids) {
         // 查询标的信息
         QueryWrapper<Project> queryWrapper = new QueryWrapper<>();
-        // 将多个标的id字符串转成数组
+        // 将多个标的id字符串转成集合
         List<Long> list = Arrays.stream(ids.split(",")).map(Long::parseLong).collect(Collectors.toList());
+        // 组装 id范围查询条件 ... where id in (1,2,3,...)
+        queryWrapper.lambda().in(Project::getId, list);
+        // 查询
+        List<Project> projects = this.list(queryWrapper);
 
+        // 循环转成dto类型
+        return projects.stream().map(p -> {
+            ProjectDTO dto = new ProjectDTO();
+            BeanUtils.copyProperties(p, dto);
 
+            // 获取剩余额度
+            dto.setRemainingAmount(this.getProjectRemainingAmount(p));
 
+            // 查询已出借人数
+            Integer tenderCount = tenderMapper.selectCount(
+                    Wrappers.<Tender>lambdaQuery().eq(Tender::getProjectId, p.getId())
+            );
+            dto.setTenderCount(tenderCount);
+            return dto;
+        }).collect(Collectors.toList());
+    }
 
-        // 转换成 dto 类型对象
-
-
-        return null;
+    /**
+     * 获取标的剩余可投额度
+     *
+     * @param project
+     * @return
+     */
+    private BigDecimal getProjectRemainingAmount(Project project) {
+        // 根据标的id在投标表查询已投金额
+        List<BigDecimal> decimalList =
+                tenderMapper.selectAmountInvestedByProjectId(project.getId());
+        // 求和结果集
+        BigDecimal amountInvested = decimalList.stream()
+                .reduce(new BigDecimal("0.0"), BigDecimal::add);
+        // 得到剩余额度
+        return project.getAmount().subtract(amountInvested);
     }
 }

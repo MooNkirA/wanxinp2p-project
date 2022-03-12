@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -127,9 +128,11 @@ public class TransactionController implements TransactionApi {
      * @param ids
      * @return
      */
+    @ApiOperation("通过ids获取多个标的")
+    @GetMapping("/projects/{ids}")
     @Override
-    public RestResponse<List<ProjectDTO>> queryProjectsIds(String ids) {
-        return null;
+    public RestResponse<List<ProjectDTO>> queryProjectsIds(@PathVariable String ids) {
+        return RestResponse.success(projectService.queryProjectsIds(ids));
     }
 
     /**

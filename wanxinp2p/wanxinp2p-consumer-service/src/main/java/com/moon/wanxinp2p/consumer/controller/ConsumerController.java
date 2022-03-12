@@ -2,6 +2,7 @@ package com.moon.wanxinp2p.consumer.controller;
 
 import com.moon.wanxinp2p.api.account.model.LoginUser;
 import com.moon.wanxinp2p.api.consumer.ConsumerApi;
+import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
@@ -96,5 +97,16 @@ public class ConsumerController implements ConsumerApi {
         // 使用工具类，从请求域中获取到用户手机号
         ConsumerDTO dto = consumerService.getByMobile(SecurityUtil.getUser().getMobile());
         return RestResponse.success(dto);
+    }
+
+    /**
+     * 获取借款人用户信息
+     *
+     * @param id 用户id
+     * @return
+     */
+    @Override
+    public RestResponse<BorrowerDTO> getBorrower(Long id) {
+        return null;
     }
 }
