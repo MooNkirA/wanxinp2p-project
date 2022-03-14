@@ -105,8 +105,11 @@ public class ConsumerController implements ConsumerApi {
      * @param id 用户id
      * @return
      */
+    @ApiOperation("获取借款人用户信息")
+    @ApiImplicitParam(name = "id", value = "用户标识", required = true, dataType = "Long", paramType = "path")
+    @GetMapping("/my/borrowers/{id}")
     @Override
-    public RestResponse<BorrowerDTO> getBorrower(Long id) {
-        return null;
+    public RestResponse<BorrowerDTO> getBorrower(@PathVariable Long id) {
+        return RestResponse.success(consumerService.getBorrower(id));
     }
 }

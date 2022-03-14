@@ -2,6 +2,7 @@ package com.moon.wanxinp2p.transaction.service;
 
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 
 import java.util.List;
@@ -66,5 +67,13 @@ public interface ProjectService {
      * @return
      */
     List<ProjectDTO> queryProjectsIds(String ids);
+
+    /**
+     * 根据标的id查询投标记录
+     *
+     * @param id 标的id
+     * @return
+     */
+    List<TenderOverviewDTO> queryTendersByProjectId(Long id);
 
 }

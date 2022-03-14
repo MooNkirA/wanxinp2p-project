@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
@@ -19,6 +20,7 @@ import com.moon.wanxinp2p.common.enums.RepaymentWayCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
+import com.moon.wanxinp2p.common.util.CommonUtil;
 import com.moon.wanxinp2p.transaction.agent.ConsumerApiAgent;
 import com.moon.wanxinp2p.transaction.agent.ContentSearchApiAgent;
 import com.moon.wanxinp2p.transaction.agent.DepositoryAgentApiAgent;
@@ -339,5 +341,26 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
                 .reduce(new BigDecimal("0.0"), BigDecimal::add);
         // 得到剩余额度
         return project.getAmount().subtract(amountInvested);
+    }
+
+    /**
+     * 根据标的id查询投标记录
+     *
+     * @param id 标的id
+     * @return
+     */
+    @Override
+    public List<TenderOverviewDTO> queryTendersByProjectId(Long id) {
+        // 使用 mp 业务方法，根据标的id查询 tender_0/tender_1 表
+        List<Tender> tenderList = tenderMapper.selectList(Wrappers.<Tender>lambdaQuery().eq(Tender::getProjectId, id));
+
+        // 转换成 dto 类型，并返回
+        return tenderList.stream().map(t -> {
+            TenderOverviewDTO dto = new TenderOverviewDTO();
+            BeanUtils.copyProperties(t, dto);
+            // 使用工具类对用户的手机号进行隐藏保护
+            dto.setConsumerUsername(CommonUtil.hiddenMobile(t.getConsumerUsername()));
+            return dto;
+        }).collect(Collectors.toList());
     }
 }

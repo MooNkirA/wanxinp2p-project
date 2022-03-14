@@ -141,8 +141,10 @@ public class TransactionController implements TransactionApi {
      * @param id 标的id
      * @return
      */
+    @ApiOperation("根据标的id查询投标记录")
+    @GetMapping("/tenders/projects/{id}")
     @Override
-    public RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(Long id) {
-        return null;
+    public RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(@PathVariable Long id) {
+        return RestResponse.success(projectService.queryTendersByProjectId(id));
     }
 }

@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.consumer.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
@@ -58,4 +59,12 @@ public interface ConsumerService extends IService<Consumer> {
      * @return
      */
     ConsumerDTO getByMobile(String mobile);
+
+    /**
+     * 获取借款人基本信息
+     *
+     * @param id 用户id
+     * @return
+     */
+    BorrowerDTO getBorrower(Long id);
 }
