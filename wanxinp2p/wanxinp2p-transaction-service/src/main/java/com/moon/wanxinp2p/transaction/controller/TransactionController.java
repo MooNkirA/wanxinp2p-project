@@ -2,7 +2,9 @@ package com.moon.wanxinp2p.transaction.controller;
 
 import com.moon.wanxinp2p.api.transaction.TransactionApi;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
+import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -146,5 +148,16 @@ public class TransactionController implements TransactionApi {
     @Override
     public RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(@PathVariable Long id) {
         return RestResponse.success(projectService.queryTendersByProjectId(id));
+    }
+
+    /**
+     * 用户投标
+     *
+     * @param projectInvestDTO 投标信息
+     * @return
+     */
+    @Override
+    public RestResponse<TenderDTO> createTender(ProjectInvestDTO projectInvestDTO) {
+        return null;
     }
 }

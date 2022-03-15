@@ -1,7 +1,9 @@
 package com.moon.wanxinp2p.api.transaction;
 
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
+import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -76,4 +78,12 @@ public interface TransactionApi {
      * @return
      */
     RestResponse<List<TenderOverviewDTO>> queryTendersByProjectId(Long id);
+
+    /**
+     * 用户投标
+     *
+     * @param projectInvestDTO 投标信息
+     * @return
+     */
+    RestResponse<TenderDTO> createTender(ProjectInvestDTO projectInvestDTO);
 }

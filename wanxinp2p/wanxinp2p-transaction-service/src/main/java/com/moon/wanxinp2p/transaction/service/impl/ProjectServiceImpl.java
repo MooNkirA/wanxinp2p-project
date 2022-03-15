@@ -8,7 +8,9 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
+import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
+import com.moon.wanxinp2p.api.transaction.model.TenderDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -362,5 +364,16 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
             dto.setConsumerUsername(CommonUtil.hiddenMobile(t.getConsumerUsername()));
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    /**
+     * 用户投标
+     *
+     * @param projectInvestDTO
+     * @return
+     */
+    @Override
+    public TenderDTO createTender(ProjectInvestDTO projectInvestDTO) {
+        return null;
     }
 }

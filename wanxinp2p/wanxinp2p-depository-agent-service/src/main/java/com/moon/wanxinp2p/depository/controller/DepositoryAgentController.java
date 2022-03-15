@@ -2,11 +2,13 @@ package com.moon.wanxinp2p.depository.controller;
 
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.DepositoryAgentApi;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
+import com.moon.wanxinp2p.depository.service.BankConsumerService;
 import com.moon.wanxinp2p.depository.service.DepositoryRecordService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -30,6 +32,9 @@ public class DepositoryAgentController implements DepositoryAgentApi {
 
     @Autowired
     private DepositoryRecordService depositoryRecordService;
+
+    @Autowired
+    private BankConsumerService bankConsumerService;
 
     /**
      * 开通存管账户
@@ -66,5 +71,16 @@ public class DepositoryAgentController implements DepositoryAgentApi {
         response.setResult(respData.getRespCode());
         response.setMsg(respData.getRespMsg());
         return response;
+    }
+
+    /**
+     * 获取当前登录用户余额信息
+     *
+     * @param userNo 用户编码
+     * @return
+     */
+    @Override
+    public RestResponse<BalanceDetailsDTO> getBalance(String userNo) {
+        return RestResponse.success();
     }
 }
