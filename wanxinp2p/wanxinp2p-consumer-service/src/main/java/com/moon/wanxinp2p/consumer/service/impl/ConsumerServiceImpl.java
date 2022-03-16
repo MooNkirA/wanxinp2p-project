@@ -11,6 +11,7 @@ import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -279,4 +280,14 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
         return dto;
     }
 
+    /**
+     * 远程调用存管系统获取用户余额信息
+     *
+     * @param userNo
+     * @return
+     */
+    @Override
+    public RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo) {
+        return depositoryAgentApiAgent.getBalance(userNo);
+    }
 }

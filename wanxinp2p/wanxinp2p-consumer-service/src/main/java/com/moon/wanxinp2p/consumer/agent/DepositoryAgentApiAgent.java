@@ -1,9 +1,12 @@
 package com.moon.wanxinp2p.consumer.agent;
 
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 /**
@@ -26,4 +29,6 @@ public interface DepositoryAgentApiAgent {
     @PostMapping("/depository-agent/l/consumers")
     RestResponse<GatewayRequest> createConsumer(ConsumerRequest consumerRequest);
 
+    @GetMapping("/depository-agent/l/balances/{userNo}")
+    RestResponse<BalanceDetailsDTO> getBalance(@PathVariable("userNo") String userNo);
 }

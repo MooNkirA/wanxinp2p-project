@@ -4,6 +4,7 @@ import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.lang.Nullable;
@@ -57,4 +58,10 @@ public interface ConsumerApi {
      */
     RestResponse<BorrowerDTO> getBorrower(Long id);
 
+    /**
+     * 获取当前登录用户余额信息
+     *
+     * @return
+     */
+    RestResponse<BalanceDetailsDTO> getMyBalance();
 }

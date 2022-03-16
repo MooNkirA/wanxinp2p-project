@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
@@ -374,6 +375,53 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
      */
     @Override
     public TenderDTO createTender(ProjectInvestDTO projectInvestDTO) {
-        return null;
+        /* 用户投标前置条件判断 */
+        // 1. 判断投标金额是否大于最小投标金额
+        BigDecimal amount = new BigDecimal(projectInvestDTO.getAmount());
+        // 配置的最小投标金额
+        BigDecimal miniInvestment = configService.getMiniInvestmentAmount();
+        if (amount.compareTo(miniInvestment) < 0) {
+            throw new BusinessException(TransactionErrorCode.E_150109);
+        }
+
+        // 2. 判断用户账户余额是否小于投标金额
+        LoginUser user = SecurityUtil.getUser();
+        // 调用用户中心根据用户手机查询用户
+        RestResponse<ConsumerDTO> consumerResponse = consumerApiAgent
+                .getCurrConsumer(user.getMobile());
+        // 调用存管代理服务接口查询用户余额
+        RestResponse<BalanceDetailsDTO> balanceResponse = depositoryAgentApiAgent
+                .getBalance(consumerResponse.getResult().getUserNo());
+        // 获取用户余额
+        BigDecimal balance = balanceResponse.getResult().getBalance();
+        if (balance.compareTo(amount) < 0) {
+            throw new BusinessException(TransactionErrorCode.E_150112);
+        }
+
+        // 3. 判断标的是否满标，标的状态为FULLY就表示满标
+        Long projectId = projectInvestDTO.getId();
+        // 根据id查询标的信息
+        Project project = getById(projectId);
+        // 判断满标标识
+        if (ProjectCode.FULLY.getCode().equalsIgnoreCase(project.getProjectStatus())) {
+            throw new BusinessException(TransactionErrorCode.E_150114);
+        }
+
+        // 4. 判断投标金额是否超过剩余未投金额
+        BigDecimal remainingAmount = getProjectRemainingAmount(project);
+        if (amount.compareTo(remainingAmount) < 1) {
+            // 5. 判断此次投标后，剩余未投金额是否满足最小投标金额
+            // 此次投标后的剩余未投金额 = 目前剩余未投金额 - 本次投标金额
+            BigDecimal afterAmount = remainingAmount.subtract(amount);
+            if (afterAmount.compareTo(miniInvestment) < 0) {
+                // 投标后剩余金额小于设置的最小投标金额
+                throw new BusinessException(TransactionErrorCode.E_150111);
+            }
+
+            return null;
+        } else {
+            // 本次投标资金额超出标的剩余未投资金
+            throw new BusinessException(TransactionErrorCode.E_150110);
+        }
     }
 }

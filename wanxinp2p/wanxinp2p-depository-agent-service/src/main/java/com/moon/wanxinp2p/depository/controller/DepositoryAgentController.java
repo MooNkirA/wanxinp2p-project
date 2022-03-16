@@ -14,6 +14,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -79,8 +81,11 @@ public class DepositoryAgentController implements DepositoryAgentApi {
      * @param userNo 用户编码
      * @return
      */
+    @ApiOperation("获取用户可用余额")
+    @ApiImplicitParam(name = "userNo", value = "用户编码", required = true, dataType = "String")
+    @GetMapping("/l/balances/{userNo}")
     @Override
-    public RestResponse<BalanceDetailsDTO> getBalance(String userNo) {
-        return RestResponse.success();
+    public RestResponse<BalanceDetailsDTO> getBalance(@PathVariable String userNo) {
+        return RestResponse.success(bankConsumerService.getBalance(userNo));
     }
 }

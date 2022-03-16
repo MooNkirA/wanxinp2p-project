@@ -6,6 +6,7 @@ import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
@@ -111,5 +112,19 @@ public class ConsumerController implements ConsumerApi {
     @Override
     public RestResponse<BorrowerDTO> getBorrower(@PathVariable Long id) {
         return RestResponse.success(consumerService.getBorrower(id));
+    }
+
+    /**
+     * 获取当前登录用户余额信息
+     *
+     * @return
+     */
+    @ApiOperation("获取用户可用余额")
+    @GetMapping("/my/balances")
+    @Override
+    public RestResponse<BalanceDetailsDTO> getMyBalance() {
+        // 使用工具类，从请求域中获取到用户手机号，再根据手机查询到用户数据
+        ConsumerDTO dto = consumerService.getByMobile(SecurityUtil.getUser().getMobile());
+        return consumerService.getBalanceFromDepository(dto.getUserNo());
     }
 }
