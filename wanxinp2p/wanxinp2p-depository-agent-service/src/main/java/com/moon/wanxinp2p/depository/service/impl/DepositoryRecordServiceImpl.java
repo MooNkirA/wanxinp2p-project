@@ -10,6 +10,7 @@ import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.ProjectRequestDataDTO;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.cache.Cache;
 import com.moon.wanxinp2p.common.constants.CommonConstants;
@@ -160,10 +161,10 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
 
         // 3. 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(标的信息)，根据结果修改状态并返回结果
         String url = configService.getDepositoryUrl() + "/service";
-        return sendHttpGet(url, reqData, depositoryRecord);
+        return sendHttpGet("CREATE_PROJECT", url, reqData, depositoryRecord);
     }
 
-    private DepositoryResponseDTO<DepositoryBaseResponse> sendHttpGet(String url, String reqData,
+    private DepositoryResponseDTO<DepositoryBaseResponse> sendHttpGet(String serviceName, String url, String reqData,
                                                                       DepositoryRecord depositoryRecord) {
         /*
          * 银行存管系统接收的4大参数: serviceName, platformNo, reqData, signature。
@@ -174,7 +175,7 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         // redData签名
         // 发送请求, 获取结果, 如果检验签名失败, 拦截器会在结果中放入: "signature", "false"
         String responseBody = okHttpService
-                .doSyncGet(url + "?serviceName=CREATE_PROJECT&platformNo=" + platformNo + "&reqData=" + reqData);
+                .doSyncGet(url + "?serviceName=" + serviceName + "&platformNo=" + platformNo + "&reqData=" + reqData);
         DepositoryResponseDTO<DepositoryBaseResponse> depositoryResponse = JSON
                 .parseObject(responseBody, new TypeReference<DepositoryResponseDTO<DepositoryBaseResponse>>() {
                 });
@@ -259,5 +260,39 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
      */
     private DepositoryRecord getEntityByRequestNo(String requestNo) {
         return getOne(new QueryWrapper<DepositoryRecord>().lambda().eq(DepositoryRecord::getRequestNo, requestNo));
+    }
+
+    /**
+     * 投标预处理
+     *
+     * @param userAutoPreTransactionRequest
+     * @return
+     */
+    @Override
+    public DepositoryResponseDTO<DepositoryBaseResponse> userAutoPreTransaction(UserAutoPreTransactionRequest userAutoPreTransactionRequest) {
+        // 创建 DepositoryRecord 记录对象，设置必要的属性
+        String requestNo = userAutoPreTransactionRequest.getRequestNo();
+        DepositoryRecord depositoryRecord = new DepositoryRecord()
+                .setRequestNo(requestNo) // 设置请求流水号
+                .setRequestType(userAutoPreTransactionRequest.getBizType()) // 设置请求类型
+                .setObjectType("UserAutoPreTransactionRequest") // 设置关联业务实体类型
+                .setObjectId(userAutoPreTransactionRequest.getId()); // 设置关联业务实体标识
+
+        // 保存交易记录（实现幂等性）
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = handleIdempotent(depositoryRecord);
+        if (responseDTO != null) {
+            return responseDTO;
+        }
+
+        // 重新查询交易记录
+        depositoryRecord = getEntityByRequestNo(requestNo);
+
+        // 对请求数据进行签名
+        String jsonString = JSON.toJSONString(userAutoPreTransactionRequest);
+        String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
+
+        // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(投标信息)，根据结果修改状态并返回结果
+        String url = configService.getDepositoryUrl() + "/service";
+        return sendHttpGet("USER_AUTO_PRE_TRANSACTION", url, reqData, depositoryRecord);
     }
 }

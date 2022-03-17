@@ -156,8 +156,12 @@ public class TransactionController implements TransactionApi {
      * @param projectInvestDTO 投标信息
      * @return
      */
+    @ApiOperation("用户投标")
+    @ApiImplicitParam(name = "projectInvestDTO", value = "投标信息", required = true,
+            dataType = "ProjectInvestDTO", paramType = "body")
+    @PostMapping("/my/tenders")
     @Override
-    public RestResponse<TenderDTO> createTender(ProjectInvestDTO projectInvestDTO) {
-        return null;
+    public RestResponse<TenderDTO> createTender(@RequestBody ProjectInvestDTO projectInvestDTO) {
+        return RestResponse.success(projectService.createTender(projectInvestDTO));
     }
 }

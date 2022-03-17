@@ -3,6 +3,7 @@ package com.moon.wanxinp2p.api.depository;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 
@@ -40,4 +41,11 @@ public interface DepositoryAgentApi {
      */
     RestResponse<BalanceDetailsDTO> getBalance(String userNo);
 
+    /**
+     * 预授权处理
+     *
+     * @param userAutoPreTransactionRequest 预授权处理信息
+     * @return
+     */
+    RestResponse<String> userAutoPreTransaction(UserAutoPreTransactionRequest userAutoPreTransactionRequest);
 }

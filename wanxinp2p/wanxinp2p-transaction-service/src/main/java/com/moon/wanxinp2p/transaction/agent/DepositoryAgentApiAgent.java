@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.transaction.agent;
 
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -25,4 +26,7 @@ public interface DepositoryAgentApiAgent {
 
     @GetMapping("/depository-agent/l/balances/{userNo}")
     RestResponse<BalanceDetailsDTO> getBalance(@PathVariable("userNo") String userNo);
+
+    @PostMapping("/depository-agent/l/user-auto-pre-transaction")
+    RestResponse<String> userAutoPreTransaction(@RequestBody UserAutoPreTransactionRequest userAutoPreTransactionRequest);
 }

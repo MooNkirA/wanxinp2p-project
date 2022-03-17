@@ -6,6 +6,7 @@ import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.depository.service.BankConsumerService;
@@ -65,14 +66,7 @@ public class DepositoryAgentController implements DepositoryAgentApi {
     @PostMapping("/l/createProject")
     @Override
     public RestResponse<String> createProject(@RequestBody ProjectDTO projectDTO) {
-        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = depositoryRecordService.createProject(projectDTO);
-        // 获取响应数据
-        DepositoryBaseResponse respData = responseDTO.getRespData();
-        // 设置响应结果和响应信息
-        RestResponse<String> response = new RestResponse<>();
-        response.setResult(respData.getRespCode());
-        response.setMsg(respData.getRespMsg());
-        return response;
+        return getRestResponse(depositoryRecordService.createProject(projectDTO));
     }
 
     /**
@@ -87,5 +81,36 @@ public class DepositoryAgentController implements DepositoryAgentApi {
     @Override
     public RestResponse<BalanceDetailsDTO> getBalance(@PathVariable String userNo) {
         return RestResponse.success(bankConsumerService.getBalance(userNo));
+    }
+
+    /**
+     * 预授权处理
+     *
+     * @param userAutoPreTransactionRequest 预授权处理信息
+     * @return
+     */
+    @ApiOperation(value = "预授权处理")
+    @ApiImplicitParam(name = "userAutoPreTransactionRequest", value = "平台向存管系统发送标的信息",
+            required = true, dataType = "UserAutoPreTransactionRequest", paramType = "body")
+    @PostMapping("/l/user-auto-pre-transaction")
+    @Override
+    public RestResponse<String> userAutoPreTransaction(@RequestBody UserAutoPreTransactionRequest userAutoPreTransactionRequest) {
+        return getRestResponse(depositoryRecordService.userAutoPreTransaction(userAutoPreTransactionRequest));
+    }
+
+    /**
+     * 统一处理响应信息
+     *
+     * @param depositoryResponse
+     * @return
+     */
+    private RestResponse<String> getRestResponse(DepositoryResponseDTO<DepositoryBaseResponse> depositoryResponse) {
+        // 获取响应数据
+        DepositoryBaseResponse respData = depositoryResponse.getRespData();
+        // 设置响应结果和响应信息
+        final RestResponse<String> restResponse = new RestResponse<>();
+        restResponse.setResult(respData.getRespCode());
+        restResponse.setMsg(respData.getRespMsg());
+        return restResponse;
     }
 }

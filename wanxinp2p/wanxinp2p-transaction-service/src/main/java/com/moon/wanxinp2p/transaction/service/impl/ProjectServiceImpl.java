@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
@@ -18,6 +19,7 @@ import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
 import com.moon.wanxinp2p.common.enums.DepositoryReturnCode;
+import com.moon.wanxinp2p.common.enums.PreprocessBusinessTypeCode;
 import com.moon.wanxinp2p.common.enums.ProjectCode;
 import com.moon.wanxinp2p.common.enums.RepaymentWayCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
@@ -28,7 +30,9 @@ import com.moon.wanxinp2p.transaction.agent.ConsumerApiAgent;
 import com.moon.wanxinp2p.transaction.agent.ContentSearchApiAgent;
 import com.moon.wanxinp2p.transaction.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.transaction.common.enums.ProjectTypeCode;
+import com.moon.wanxinp2p.transaction.common.enums.TradingCode;
 import com.moon.wanxinp2p.transaction.common.enums.TransactionErrorCode;
+import com.moon.wanxinp2p.transaction.common.utils.IncomeCalcUtil;
 import com.moon.wanxinp2p.transaction.common.utils.SecurityUtil;
 import com.moon.wanxinp2p.transaction.entity.Project;
 import com.moon.wanxinp2p.transaction.entity.Tender;
@@ -387,11 +391,10 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         // 2. 判断用户账户余额是否小于投标金额
         LoginUser user = SecurityUtil.getUser();
         // 调用用户中心根据用户手机查询用户
-        RestResponse<ConsumerDTO> consumerResponse = consumerApiAgent
-                .getCurrConsumer(user.getMobile());
+        RestResponse<ConsumerDTO> consumerResponse = consumerApiAgent.getCurrConsumer(user.getMobile());
+        ConsumerDTO consumer = consumerResponse.getResult();
         // 调用存管代理服务接口查询用户余额
-        RestResponse<BalanceDetailsDTO> balanceResponse = depositoryAgentApiAgent
-                .getBalance(consumerResponse.getResult().getUserNo());
+        RestResponse<BalanceDetailsDTO> balanceResponse = depositoryAgentApiAgent.getBalance(consumer.getUserNo());
         // 获取用户余额
         BigDecimal balance = balanceResponse.getResult().getBalance();
         if (balance.compareTo(amount) < 0) {
@@ -409,19 +412,99 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
         // 4. 判断投标金额是否超过剩余未投金额
         BigDecimal remainingAmount = getProjectRemainingAmount(project);
-        if (amount.compareTo(remainingAmount) < 1) {
-            // 5. 判断此次投标后，剩余未投金额是否满足最小投标金额
-            // 此次投标后的剩余未投金额 = 目前剩余未投金额 - 本次投标金额
-            BigDecimal afterAmount = remainingAmount.subtract(amount);
-            if (afterAmount.compareTo(miniInvestment) < 0) {
-                // 投标后剩余金额小于设置的最小投标金额
-                throw new BusinessException(TransactionErrorCode.E_150111);
-            }
-
-            return null;
-        } else {
+        if (amount.compareTo(remainingAmount) > 0) {
             // 本次投标资金额超出标的剩余未投资金
             throw new BusinessException(TransactionErrorCode.E_150110);
         }
+
+        // 5. 判断此次投标后，剩余未投金额是否满足最小投标金额
+        // 此次投标后的剩余未投金额 = 目前剩余未投金额 - 本次投标金额
+        BigDecimal afterAmount = remainingAmount.subtract(amount);
+        if (afterAmount.compareTo(BigDecimal.ZERO) > 0 && afterAmount.compareTo(miniInvestment) < 0) {
+            // 投标后剩余金额小于设置的最小投标金额
+            throw new BusinessException(TransactionErrorCode.E_150111);
+        }
+
+        // 6. 保存投标信息
+        // 创建投标信息实例
+        final Tender tender = new Tender();
+        // 投资人投标金额( 投标冻结金额 )
+        tender.setAmount(amount);
+        // 投标人用户标识
+        tender.setConsumerId(consumer.getId());
+        tender.setConsumerUsername(consumer.getUsername());
+        // 投标人用户编码
+        tender.setUserNo(consumer.getUserNo());
+        // 标的标识
+        tender.setProjectId(projectId);
+        // 标的编码
+        tender.setProjectNo(project.getProjectNo());
+        // 投标状态
+        tender.setTenderStatus(TradingCode.FROZEN.getCode());
+        // 创建时间
+        tender.setCreateDate(LocalDateTime.now());
+        // 请求流水号
+        tender.setRequestNo(CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX));
+        // 可用状态
+        tender.setStatus(0);
+        tender.setProjectName(project.getName());
+        // 标的期限(单位:天)
+        tender.setProjectPeriod(project.getPeriod());
+        // 年化利率(投资人视图)
+        tender.setProjectAnnualRate(project.getAnnualRate());
+        // 保存到数据库
+        tenderMapper.insert(tender);
+
+        // 7. 发送投标数据给存管代理服务
+        // 构造请求数据
+        UserAutoPreTransactionRequest transactionRequest = new UserAutoPreTransactionRequest();
+        // 冻结金额
+        transactionRequest.setAmount(amount);
+        // 预处理业务类型
+        transactionRequest.setBizType(PreprocessBusinessTypeCode.TENDER.getCode());
+        // 标的号
+        transactionRequest.setProjectNo(project.getProjectNo());
+        // 请求流水号
+        transactionRequest.setRequestNo(tender.getRequestNo());
+        // 投资人用户编码
+        transactionRequest.setUserNo(consumer.getUserNo());
+        // 设置关联业务实体标识
+        transactionRequest.setId(tender.getId());
+        // 远程调用存管代理服务
+        RestResponse<String> response = depositoryAgentApiAgent.userAutoPreTransaction(transactionRequest);
+
+        // 8. 判断银行存管系统响应结果
+        if (!DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(response.getResult())) {
+            // 抛出一个业务异常
+            log.warn("投标失败 ! 标的ID为: {}, 存管代理服务返回的状态为: {}", projectId, response.getResult());
+            throw new BusinessException(TransactionErrorCode.E_150113);
+        }
+
+        // 响应结果成功，修改投标记录状态为：已同步
+        tender.setStatus(1);
+        tenderMapper.updateById(tender);
+        // 判断当前标的是否满标
+        BigDecimal finalRemainAmont = getProjectRemainingAmount(project);
+        if (finalRemainAmont.compareTo(BigDecimal.ZERO) == 0) {
+            // 如果满标，更新标的状态
+            project.setProjectStatus(ProjectCode.FULLY.getCode());
+            updateById(project);
+        }
+
+        // 9. 转换为DTO对象，并封装相关数据
+        TenderDTO tenderDTO = new TenderDTO();
+        BeanUtils.copyProperties(tender, tenderDTO);
+        // 设置标的信息
+        project.setRepaymentWay(RepaymentWayCode.FIXED_REPAYMENT.getCode()); // 设置还款方式
+        ProjectDTO projectDTO = new ProjectDTO();
+        BeanUtils.copyProperties(project, projectDTO);
+        tenderDTO.setProject(projectDTO);
+
+        // 根据标的期限计算还款月数
+        int month = Double.valueOf(Math.ceil(project.getPeriod() / 30.0)).intValue();
+        // 设置预期收益
+        tenderDTO.setExpectedIncome(IncomeCalcUtil.getIncomeTotalInterest(amount, configService.getAnnualRate(), month));
+
+        return tenderDTO;
     }
 }
