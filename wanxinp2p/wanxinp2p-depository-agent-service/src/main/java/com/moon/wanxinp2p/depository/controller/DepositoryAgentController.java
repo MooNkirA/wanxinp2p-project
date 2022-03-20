@@ -6,7 +6,9 @@ import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.depository.service.BankConsumerService;
@@ -112,5 +114,35 @@ public class DepositoryAgentController implements DepositoryAgentApi {
         restResponse.setResult(respData.getRespCode());
         restResponse.setMsg(respData.getRespMsg());
         return restResponse;
+    }
+
+    /**
+     * 审核标的满标放款
+     *
+     * @param loanRequest
+     * @return
+     */
+    @ApiOperation(value = "审核标的满标放款")
+    @ApiImplicitParam(name = "loanRequest", value = "标的满标放款信息", required = true,
+            dataType = "LoanRequest", paramType = "body")
+    @PostMapping("l/confirm-loan")
+    @Override
+    public RestResponse<String> confirmLoan(@RequestBody LoanRequest loanRequest) {
+        return getRestResponse(depositoryRecordService.confirmLoan(loanRequest));
+    }
+
+    /**
+     * 修改标的状态
+     *
+     * @param modifyProjectStatusDTO
+     * @return
+     */
+    @ApiOperation(value = "修改标的状态")
+    @ApiImplicitParam(name = "modifyProjectStatusDTO", value = "修改标的状态DTO", required = true,
+            dataType = "ModifyProjectStatusDTO", paramType = "body")
+    @PostMapping("l/modify-project-status")
+    @Override
+    public RestResponse<String> modifyProjectStatus(@RequestBody ModifyProjectStatusDTO modifyProjectStatusDTO) {
+        return getRestResponse(depositoryRecordService.modifyProjectStatus(modifyProjectStatusDTO));
     }
 }

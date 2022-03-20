@@ -5,7 +5,9 @@ import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.depository.entity.DepositoryRecord;
 
@@ -52,4 +54,20 @@ public interface DepositoryRecordService extends IService<DepositoryRecord> {
      * @return
      */
     DepositoryResponseDTO<DepositoryBaseResponse> userAutoPreTransaction(UserAutoPreTransactionRequest userAutoPreTransactionRequest);
+
+    /**
+     * 审核满标放款
+     *
+     * @param loanRequest
+     * @return
+     */
+    DepositoryResponseDTO<DepositoryBaseResponse> confirmLoan(LoanRequest loanRequest);
+
+    /**
+     * 修改标的状态
+     *
+     * @param modifyProjectStatusDTO
+     * @return
+     */
+    DepositoryResponseDTO<DepositoryBaseResponse> modifyProjectStatus(ModifyProjectStatusDTO modifyProjectStatusDTO);
 }

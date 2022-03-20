@@ -8,7 +8,11 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
+import com.moon.wanxinp2p.api.depository.model.LoanDetailRequest;
+import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.repayment.model.ProjectWithTendersDTO;
+import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectInvestDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
@@ -506,5 +510,119 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         tenderDTO.setExpectedIncome(IncomeCalcUtil.getIncomeTotalInterest(amount, configService.getAnnualRate(), month));
 
         return tenderDTO;
+    }
+
+    /**
+     * 审核标的满标放款
+     *
+     * @param id
+     * @param approveStatus
+     * @param commission
+     * @return String
+     */
+    @Override
+    public String loansApprovalStatus(Long id, String approveStatus, String commission) {
+        /* 1. 生成放款明细 */
+        // 根据标的id查询标的信息
+        Project project = this.getById(id);
+        // 根据标的id查询投标记录（集合）
+        List<Tender> tenderList = tenderMapper.selectList(
+                Wrappers.<Tender>lambdaQuery().eq(Tender::getProjectId, id)
+        );
+        // 封装放款明细 LoanRequest
+        LoanRequest loanRequest = generateLoanRequest(project, tenderList, commission);
+
+        /* 2. 调用存管代理服务确认放款 */
+        RestResponse<String> confirmLoanResponse = depositoryAgentApiAgent.confirmLoan(loanRequest);
+        if (!DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(confirmLoanResponse.getResult())) {
+            log.warn("请求存管代理服务确认放款失败 ! 标的ID为: {}, 存管代理服务返回的状态为: {}", id, confirmLoanResponse.getResult());
+            throw new BusinessException(TransactionErrorCode.E_150113);
+        }
+        // 存管代理服务确认放款后，修改投标信息的状态为：已放款
+        List<Long> tenderIds = tenderList.stream().map(Tender::getId).collect(Collectors.toList());
+        // 根据多个id 更新
+        // 方式一：不创建 Tender 对象
+        tenderMapper.update(null, Wrappers.<Tender>lambdaUpdate()
+                .set(Tender::getTenderStatus, TradingCode.LOAN.getCode())
+                .in(Tender::getId, tenderIds));
+        // 方式二：创建 Tender 对象
+        /*tenderMapper.update(new Tender().setTenderStatus(TradingCode.LOAN.getCode()),
+                Wrappers.<Tender>lambdaUpdate().in(Tender::getId, tenderIds));*/
+
+        /* 3. 调用存管代理服务修改标的状态 */
+        // 创建请求参数对象 ModifyProjectStatusDTO
+        ModifyProjectStatusDTO modifyProjectStatusDTO = new ModifyProjectStatusDTO();
+        modifyProjectStatusDTO.setId(project.getId()); // 标的id
+        modifyProjectStatusDTO.setProjectStatus(ProjectCode.REPAYING.getCode()); // 标的状态 -- 还款中
+        modifyProjectStatusDTO.setRequestNo(loanRequest.getRequestNo()); // 请求流水号
+        modifyProjectStatusDTO.setProjectNo(project.getProjectNo()); // 标的编号
+
+        // 请求存管代理服务更新标的状态
+        RestResponse<String> modifyStatusResponse = depositoryAgentApiAgent.modifyProjectStatus(modifyProjectStatusDTO);
+        if (!DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(modifyStatusResponse.getResult())) {
+            log.warn("请求存管代理服务更新标的状态失败 ! 标的ID为: {}, 存管代理服务返回的状态为: {}", id, modifyStatusResponse.getResult());
+            throw new BusinessException(TransactionErrorCode.E_150113);
+        }
+
+        // 处理成功，修改本地数据库 p2p_transaction_*.project_* 表中的标的状态为还款中
+        project.setProjectStatus(ProjectCode.REPAYING.getCode());
+        updateById(project);
+
+        /* 4. 调用还款服务启动还款(生成还款计划、应收明细) */
+        // 准备请求数据
+        ProjectWithTendersDTO projectWithTendersDTO = new ProjectWithTendersDTO();
+        // 设置标的信息
+        ProjectDTO projectDTO = new ProjectDTO();
+        BeanUtils.copyProperties(project, projectDTO);
+        projectWithTendersDTO.setProject(projectDTO);
+        // 设置投标信息
+        List<TenderDTO> tenderDTOList = tenderList.stream().map(t -> {
+            TenderDTO dto = new TenderDTO();
+            BeanUtils.copyProperties(t, dto);
+            return dto;
+        }).collect(Collectors.toList());
+        projectWithTendersDTO.setTenders(tenderDTOList);
+        // 设置投资人让利率
+        projectWithTendersDTO.setCommissionInvestorAnnualRate(configService.getCommissionInvestorAnnualRate());
+        // 设置借款人让利率
+        projectWithTendersDTO.setCommissionBorrowerAnnualRate(configService.getBorrowerAnnualRate());
+
+        // 调用还款服务（注：这里涉及分布式事务，目前暂时留空）
+
+        return "审核成功";
+    }
+
+    /**
+     * 根据标的和投标信息生成放款明细
+     *
+     * @param project
+     * @param tenderList
+     * @param commission
+     * @return
+     */
+    public LoanRequest generateLoanRequest(Project project, List<Tender> tenderList, String commission) {
+        LoanRequest loanRequest = new LoanRequest();
+
+        // 设置标的id
+        loanRequest.setId(project.getId());
+        // 设置平台佣金
+        if (StringUtils.hasText(commission)) {
+            loanRequest.setCommission(new BigDecimal(commission));
+        }
+        // 设置标的编号
+        loanRequest.setProjectNo(project.getProjectNo());
+        // 设置请求流水号
+        loanRequest.setRequestNo(CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX));
+        // 设置放款明细 Tender 转 LoanDetailRequest
+        loanRequest.setDetails(tenderList.stream().map(t -> {
+            LoanDetailRequest loanDetail = new LoanDetailRequest();
+            // 放款金额
+            loanDetail.setAmount(t.getAmount());
+            // 预处理业务流水号
+            loanDetail.setPreRequestNo(t.getRequestNo());
+            return loanDetail;
+        }).collect(Collectors.toList()));
+
+        return loanRequest;
     }
 }

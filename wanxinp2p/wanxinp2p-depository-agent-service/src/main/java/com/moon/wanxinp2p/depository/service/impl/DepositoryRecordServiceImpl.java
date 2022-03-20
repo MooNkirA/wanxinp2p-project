@@ -9,8 +9,10 @@ import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.ProjectRequestDataDTO;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.cache.Cache;
 import com.moon.wanxinp2p.common.constants.CommonConstants;
@@ -160,11 +162,19 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
 
         // 3. 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(标的信息)，根据结果修改状态并返回结果
-        String url = configService.getDepositoryUrl() + "/service";
-        return sendHttpGet("CREATE_PROJECT", url, reqData, depositoryRecord);
+        return sendHttpGet("CREATE_PROJECT", reqData, depositoryRecord);
     }
 
-    private DepositoryResponseDTO<DepositoryBaseResponse> sendHttpGet(String serviceName, String url, String reqData,
+    /**
+     * 向银行存管系统发送同步的 GET 请求
+     * 2022.03.19 修改方法入参，移除 url 形参，直接在方法中读取配置中心值并拼接
+     *
+     * @param serviceName      银行存管系统中服务名称
+     * @param reqData          请求数据（已签名）
+     * @param depositoryRecord 存管交易记录
+     * @return
+     */
+    private DepositoryResponseDTO<DepositoryBaseResponse> sendHttpGet(String serviceName, String reqData,
                                                                       DepositoryRecord depositoryRecord) {
         /*
          * 银行存管系统接收的4大参数: serviceName, platformNo, reqData, signature。
@@ -172,6 +182,8 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
          */
         // 平台编号
         String platformNo = configService.getP2pCode();
+        // 银行存管系统 url
+        String url = configService.getDepositoryUrl() + "/service";
         // redData签名
         // 发送请求, 获取结果, 如果检验签名失败, 拦截器会在结果中放入: "signature", "false"
         String responseBody = okHttpService
@@ -292,7 +304,72 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
 
         // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(投标信息)，根据结果修改状态并返回结果
-        String url = configService.getDepositoryUrl() + "/service";
-        return sendHttpGet("USER_AUTO_PRE_TRANSACTION", url, reqData, depositoryRecord);
+        return sendHttpGet("USER_AUTO_PRE_TRANSACTION", reqData, depositoryRecord);
+    }
+
+    /**
+     * 审核满标放款
+     *
+     * @param loanRequest
+     * @return
+     */
+    @Override
+    public DepositoryResponseDTO<DepositoryBaseResponse> confirmLoan(LoanRequest loanRequest) {
+        // 创建 DepositoryRecord 记录对象，设置必要的属性
+        String requestNo = loanRequest.getRequestNo();
+        DepositoryRecord depositoryRecord = new DepositoryRecord()
+                .setRequestNo(requestNo) // 设置请求流水号
+                .setRequestType(DepositoryRequestTypeCode.FULL_LOAN.getCode()) // 设置请求类型
+                .setObjectType("LoanRequest") // 设置关联业务实体类型
+                .setObjectId(loanRequest.getId()); // 设置关联业务实体标识
+
+        // 保存交易记录（实现幂等性）
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = handleIdempotent(depositoryRecord);
+        if (responseDTO != null) {
+            return responseDTO;
+        }
+
+        // 重新查询交易记录
+        depositoryRecord = getEntityByRequestNo(requestNo);
+
+        // 对请求数据进行签名
+        String jsonString = JSON.toJSONString(loanRequest);
+        String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
+
+        // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(确认放款)，根据结果修改状态并返回结果
+        return sendHttpGet("CONFIRM_LOAN", reqData, depositoryRecord);
+    }
+
+    /**
+     * 修改标的状态
+     *
+     * @param modifyProjectStatusDTO
+     * @return
+     */
+    @Override
+    public DepositoryResponseDTO<DepositoryBaseResponse> modifyProjectStatus(ModifyProjectStatusDTO modifyProjectStatusDTO) {
+        // 创建 DepositoryRecord 记录对象，设置必要的属性
+        String requestNo = modifyProjectStatusDTO.getRequestNo();
+        DepositoryRecord depositoryRecord = new DepositoryRecord()
+                .setRequestNo(requestNo) // 设置请求流水号
+                .setRequestType(DepositoryRequestTypeCode.MODIFY_STATUS.getCode()) // 设置请求类型
+                .setObjectType("Project") // 设置关联业务实体类型
+                .setObjectId(modifyProjectStatusDTO.getId()); // 设置关联业务实体标识
+
+        // 保存交易记录（实现幂等性）
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = handleIdempotent(depositoryRecord);
+        if (responseDTO != null) {
+            return responseDTO;
+        }
+
+        // 重新查询交易记录
+        depositoryRecord = getEntityByRequestNo(requestNo);
+
+        // 对请求数据进行签名
+        String jsonString = JSON.toJSONString(modifyProjectStatusDTO);
+        String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
+
+        // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(更新标的状态)，根据结果修改状态并返回结果
+        return sendHttpGet("MODIFY_PROJECT", reqData, depositoryRecord);
     }
 }

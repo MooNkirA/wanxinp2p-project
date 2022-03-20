@@ -3,7 +3,9 @@ package com.moon.wanxinp2p.api.depository;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
+import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 
@@ -48,4 +50,20 @@ public interface DepositoryAgentApi {
      * @return
      */
     RestResponse<String> userAutoPreTransaction(UserAutoPreTransactionRequest userAutoPreTransactionRequest);
+
+    /**
+     * 审核标的满标放款
+     *
+     * @param loanRequest
+     * @return
+     */
+    RestResponse<String> confirmLoan(LoanRequest loanRequest);
+
+    /**
+     * 修改标的状态
+     *
+     * @param modifyProjectStatusDTO
+     * @return
+     */
+    RestResponse<String> modifyProjectStatus(ModifyProjectStatusDTO modifyProjectStatusDTO);
 }
