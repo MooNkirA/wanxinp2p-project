@@ -16,6 +16,7 @@
         <module>data-security</module>
         <module>tcc-hmily-demo</module>
         <module>sharding-jdbc-demo</module>
+        <module>ensure-message-demo</module>
     </modules>
 
     <properties>
