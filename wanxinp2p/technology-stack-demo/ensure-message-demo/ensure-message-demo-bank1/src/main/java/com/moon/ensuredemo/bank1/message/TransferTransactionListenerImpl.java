@@ -34,24 +34,16 @@ public class TransferTransactionListenerImpl implements RocketMQLocalTransaction
     @Override
     public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
         // 1.接收并解析消息
-        final JSONObject jsonObject = JSON.parseObject(new String((byte[])
-                msg.getPayload()));
-        AccountChangeEvent accountChangeEvent =
-                JSONObject.parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.
-                        class);
+        final JSONObject jsonObject = JSON.parseObject(new String((byte[]) msg.getPayload()));
+        AccountChangeEvent accountChangeEvent = JSONObject
+                .parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
 
-        // 2.执行本地事务
-        Boolean isCommit = true;
         try {
+            // 2.执行本地事务
             accountInfoService.doUpdateAccountBalance(accountChangeEvent);
-        } catch (Exception e) {
-            isCommit = false;
-        }
-
-        // 3.返回执行结果
-        if (isCommit) {
+            // 3.返回执行结果
             return RocketMQLocalTransactionState.COMMIT;
-        } else {
+        } catch (Exception e) {
             return RocketMQLocalTransactionState.ROLLBACK;
         }
     }
@@ -65,21 +57,16 @@ public class TransferTransactionListenerImpl implements RocketMQLocalTransaction
      */
     @Override
     public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
-        System.out.println("事务回查");
+        log.info("TransferTransactionListenerImpl 执行事务回查");
         // 1.接收并解析消息
-        final JSONObject jsonObject = JSON.parseObject(new String((byte[])
-                msg.getPayload()));
-        AccountChangeEvent accountChangeEvent =
-                JSONObject.parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
+        final JSONObject jsonObject = JSON.parseObject(new String((byte[]) msg.getPayload()));
+        AccountChangeEvent accountChangeEvent = JSONObject
+                .parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
 
         // 2.查询de_duplication表
         int isExistTx = accountInfoDao.isExistTx(accountChangeEvent.getTxNo());
 
-        // 3.根据查询结果返回值
-        if (isExistTx > 0) {
-            return RocketMQLocalTransactionState.COMMIT;
-        } else {
-            return RocketMQLocalTransactionState.ROLLBACK;
-        }
+        // 3.根据查询结果返回值。（交易记录表存在记录，则说明本地事务成功）
+        return isExistTx > 0 ? RocketMQLocalTransactionState.COMMIT : RocketMQLocalTransactionState.ROLLBACK;
     }
 }

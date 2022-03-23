@@ -18,12 +18,12 @@ public class AccountInfoServiceImpl implements AccountInfoService {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateAccountBalance(AccountChangeEvent accountChange) {
-        System.out.println("bank2执行本地事务");
+        log.info("bank2 工程 AccountInfoServiceImpl 执行本地事务");
         int isExistsTx = accountInfoDao.isExistTx(accountChange.getTxNo());
         if (isExistsTx == 0) {
+            // 当交易记录表没有记录，才新增
             accountInfoDao.addAccountBalance(accountChange.getAccountNo(), accountChange.getAmount());
             accountInfoDao.addTx(accountChange.getTxNo());
-
         }
     }
 }

@@ -9,7 +9,7 @@ public interface AccountInfoService {
      *
      * @param accountChange
      */
-    void updateAccountBalance(AccountChangeEvent accountChange);
+    void sendUpdateAccountBalanceMsg(AccountChangeEvent accountChange);
 
     /**
      * 更新帐号余额-本地事务
