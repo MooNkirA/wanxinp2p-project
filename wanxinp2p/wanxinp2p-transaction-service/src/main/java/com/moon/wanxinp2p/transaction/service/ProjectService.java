@@ -6,6 +6,7 @@ import com.moon.wanxinp2p.api.transaction.model.ProjectQueryDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderOverviewDTO;
 import com.moon.wanxinp2p.common.domain.PageVO;
+import com.moon.wanxinp2p.transaction.entity.Project;
 
 import java.util.List;
 
@@ -95,4 +96,12 @@ public interface ProjectService {
      * @return String
      */
     String loansApprovalStatus(Long id, String approveStatus, String commission);
+
+    /**
+     * 修改标的状态为还款中
+     *
+     * @param project
+     * @return
+     */
+    boolean updateProjectStatusAndStartRepayment(Project project);
 }

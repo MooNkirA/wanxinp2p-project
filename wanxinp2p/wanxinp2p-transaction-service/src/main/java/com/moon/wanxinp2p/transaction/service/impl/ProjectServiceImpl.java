@@ -42,6 +42,7 @@ import com.moon.wanxinp2p.transaction.entity.Project;
 import com.moon.wanxinp2p.transaction.entity.Tender;
 import com.moon.wanxinp2p.transaction.mapper.ProjectMapper;
 import com.moon.wanxinp2p.transaction.mapper.TenderMapper;
+import com.moon.wanxinp2p.transaction.message.P2pTransactionProducer;
 import com.moon.wanxinp2p.transaction.model.LoginUser;
 import com.moon.wanxinp2p.transaction.service.ConfigService;
 import com.moon.wanxinp2p.transaction.service.ProjectService;
@@ -49,8 +50,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.io.PipedReader;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -83,6 +86,9 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
 
     @Autowired
     private TenderMapper tenderMapper;
+
+    @Autowired
+    private P2pTransactionProducer p2pTransactionProducer;
 
     /**
      * 创建标的
@@ -587,8 +593,8 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         // 设置借款人让利率
         projectWithTendersDTO.setCommissionBorrowerAnnualRate(configService.getBorrowerAnnualRate());
 
-        // 调用还款服务（注：这里涉及分布式事务，目前暂时留空）
-
+        // 调用还款服务（注：这里涉及分布式事务，使用 RocketMQ 实现事务最终一致）
+        p2pTransactionProducer.updateProjectStatusAndStartRepayment(project, projectWithTendersDTO);
         return "审核成功";
     }
 
@@ -624,5 +630,20 @@ public class ProjectServiceImpl extends ServiceImpl<ProjectMapper, Project> impl
         }).collect(Collectors.toList()));
 
         return loanRequest;
+    }
+
+    /**
+     * 修改标的状态为还款中
+     *
+     * @param project
+     * @return
+     */
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean updateProjectStatusAndStartRepayment(Project project) {
+        // 如果处理成功，就修改标的状态为还款中
+        project.setProjectStatus(ProjectCode.REPAYING.getCode());
+        // 更新数据库表
+        return this.updateById(project);
     }
 }

@@ -17,6 +17,7 @@ import com.moon.wanxinp2p.repayment.service.RepaymentService;
 import com.moon.wanxinp2p.repayment.util.RepaymentUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -46,6 +47,7 @@ public class RepaymentServiceImpl implements RepaymentService {
      * @param projectWithTendersDTO
      * @return
      */
+    @Transactional(rollbackFor = Exception.class)
     @Override
     public String startRepayment(ProjectWithTendersDTO projectWithTendersDTO) {
         /* 1. 生成借款人还款计划 */
@@ -77,7 +79,6 @@ public class RepaymentServiceImpl implements RepaymentService {
             // 保存应收明细到数据库，每个投标人每次应收生成一条应收明细记录
             planList.forEach(plan -> saveRreceivablePlan(plan, tenderDTO, receipts));
         });
-
 
         return DepositoryReturnCode.RETURN_CODE_00000.getCode();
     }
