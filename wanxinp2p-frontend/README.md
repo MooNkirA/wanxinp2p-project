@@ -2,9 +2,9 @@
 
 ## 万信金融前端工程概述
 
-### 前端APP工程（wanxinp2p-frontend-app）
+### 前端APP工程（wanxinp2p-web-app）
 
-> wanxinp2p-frontend-app 是万信金融项目前端APP工程，以 H5 为主，结合uni-app 的全端特性。同步实现了安卓、iOS、微信小程序的同步实现
+> wanxinp2p-web-app 是万信金融项目前端APP工程，以 H5 为主，结合uni-app 的全端特性。同步实现了安卓、IOS、微信小程序的同步实现
 
 ![](./img/demo.png)
 

@@ -100,7 +100,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             requestDetailsService.modifyGatewayByRequestNo(response);
 
             //产生开户成功消息
-            //producer.personalRegister(personalRegisterRequest.getAppCode(), response);
+            producer.personalRegister(personalRegisterRequest.getAppCode(), response);
         } catch (Exception e) {
             log.error(e.getMessage());
 
@@ -109,7 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             requestDetailsService.modifyGatewayByRequestNo(response);
 
             //产生开户失败消息
-            //producer.personalRegister(personalRegisterRequest.getAppCode(), response);
+            producer.personalRegister(personalRegisterRequest.getAppCode(), response);
             throw new BusinessException(personalRegisterRequest.getRequestNo(), RemoteReturnCode.EXCEPTION);
         }
 

@@ -18,7 +18,7 @@ import lombok.Getter;
 @Getter
 public enum ConsumerErrorCode implements ErrorCode {
 
-    E_140101(140101, "不存在的用户信息"),
+    // E_140101(140101, "不存在的用户信息"), // 转移到 CommonErrorCode
     E_140102(140102, "请求失败"),
     E_140105(140105, "用户已开户"),
     E_140106(140106, "注册失败"),

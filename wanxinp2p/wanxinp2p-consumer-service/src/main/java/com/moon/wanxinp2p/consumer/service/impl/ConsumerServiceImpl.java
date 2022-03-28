@@ -7,9 +7,11 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.moon.wanxinp2p.api.account.model.AccountDTO;
 import com.moon.wanxinp2p.api.account.model.AccountRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.BankCardDTO;
+import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -19,6 +21,7 @@ import com.moon.wanxinp2p.common.enums.DepositoryReturnCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
+import com.moon.wanxinp2p.common.util.IDCardUtil;
 import com.moon.wanxinp2p.consumer.agent.AccountApiAgent;
 import com.moon.wanxinp2p.consumer.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.consumer.common.enums.ConsumerErrorCode;
@@ -33,6 +36,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
 
 /**
  * 用户业务层接口实现
@@ -132,7 +137,8 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
      * @param mobile 手机号
      * @return
      */
-    private ConsumerDTO getByMobile(String mobile) {
+    @Override
+    public ConsumerDTO getByMobile(String mobile) {
         // 根据手机号查询
         Consumer consumer = this.getOne(new QueryWrapper<Consumer>().lambda().eq(Consumer::getMobile, mobile));
 
@@ -160,7 +166,7 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
 
         if (consumerDTO == null) {
             // 用户不存在
-            throw new BusinessException(ConsumerErrorCode.E_140101);
+            throw new BusinessException(CommonErrorCode.E_140101);
         }
 
         // 判断 isBindCard（是否绑定银行卡）是否为1
@@ -245,5 +251,43 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
         }
 
         return false;
+    }
+
+    /**
+     * 获取借款人基本信息
+     *
+     * @param id 用户id
+     * @return
+     */
+    @Override
+    public BorrowerDTO getBorrower(Long id) {
+        // 根据id查询用户表
+        Consumer consumer = this.getById(id);
+        if (consumer == null) {
+            log.info("id为{}的用户信息不存在", id);
+            throw new BusinessException(CommonErrorCode.E_140101);
+        }
+
+        // 转换成 dto 类型
+        BorrowerDTO dto = new BorrowerDTO();
+        BeanUtils.copyProperties(consumer, dto);
+        // 使用项目中的工具类，从用户的身份证中获取年龄、生日、性别等信息
+        Map<String, String> info = IDCardUtil.getInfo(dto.getIdNumber());
+        dto.setAge(Integer.valueOf(info.get("age")));
+        dto.setGender(info.get("gender"));
+        dto.setBirthday(info.get("birthday"));
+
+        return dto;
+    }
+
+    /**
+     * 远程调用存管系统获取用户余额信息
+     *
+     * @param userNo
+     * @return
+     */
+    @Override
+    public RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo) {
+        return depositoryAgentApiAgent.getBalance(userNo);
     }
 }

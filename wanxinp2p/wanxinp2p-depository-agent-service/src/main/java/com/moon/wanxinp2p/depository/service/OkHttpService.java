@@ -22,7 +22,7 @@ public class OkHttpService {
     private SignatureInterceptor signatureInterceptor;
 
     /**
-     * okHttp 同步 GET 请求
+     * okHttp 同步 GET 请求(加入请求拦截，用于数据签名及验签)
      *
      * @param url
      * @return
@@ -37,4 +37,27 @@ public class OkHttpService {
         }
         return "";
     }
+
+    /**
+     * okHttp 同步 GET 请求(无拦截)
+     *
+     * @param url
+     * @return
+     */
+    public String doGet(String url) {
+        String responseBody = "";
+        OkHttpClient okHttpClient = new OkHttpClient().newBuilder().build();
+        Request request = new Request.Builder().url(url).build();
+
+        try (Response response = okHttpClient.newCall(request).execute()) {
+            if (response.isSuccessful() && response.body() != null) {
+                responseBody = response.body().string();
+            }
+        } catch (IOException e) {
+            log.warn("请求出现异常: ", e);
+        }
+
+        return responseBody;
+    }
+
 }

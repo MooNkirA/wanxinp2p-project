@@ -1,8 +1,11 @@
 package com.moon.wanxinp2p.consumer.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
+import com.moon.wanxinp2p.api.consumer.model.ConsumerDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRegisterDTO;
 import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
+import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -50,4 +53,27 @@ public interface ConsumerService extends IService<Consumer> {
      */
     Boolean modifyResult(DepositoryConsumerResponse response);
 
+    /**
+     * 通过手机号获取当前用户信息
+     *
+     * @param mobile
+     * @return
+     */
+    ConsumerDTO getByMobile(String mobile);
+
+    /**
+     * 获取借款人基本信息
+     *
+     * @param id 用户id
+     * @return
+     */
+    BorrowerDTO getBorrower(Long id);
+
+    /**
+     * 远程调用存管系统获取用户余额信息
+     *
+     * @param userNo
+     * @return
+     */
+    RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo);
 }
