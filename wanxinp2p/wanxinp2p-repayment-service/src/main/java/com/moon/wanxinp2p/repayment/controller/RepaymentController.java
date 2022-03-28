@@ -7,6 +7,8 @@ import com.moon.wanxinp2p.repayment.service.RepaymentService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,4 +42,14 @@ public class RepaymentController implements RepaymentApi {
         return RestResponse.success(repaymentService.startRepayment(projectWithTendersDTO));
     }
 
+    /**
+     * 手动触发用户还款
+     *
+     * @param date
+     */
+    @ApiOperation("手动触发用户还款")
+    @GetMapping("/execute-repayment/{date}")
+    public void executeRepayment(@PathVariable String date) {
+        repaymentService.executeRepayment(date);
+    }
 }

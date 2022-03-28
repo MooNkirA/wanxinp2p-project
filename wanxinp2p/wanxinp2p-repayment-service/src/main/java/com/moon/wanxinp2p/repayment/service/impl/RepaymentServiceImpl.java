@@ -1,27 +1,40 @@
 package com.moon.wanxinp2p.repayment.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.repayment.model.ProjectWithTendersDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.api.transaction.model.TenderDTO;
+import com.moon.wanxinp2p.common.domain.RestResponse;
+import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.DepositoryReturnCode;
+import com.moon.wanxinp2p.common.enums.PreprocessBusinessTypeCode;
 import com.moon.wanxinp2p.common.enums.RepaymentWayCode;
+import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
+import com.moon.wanxinp2p.common.util.CodeNoUtil;
 import com.moon.wanxinp2p.common.util.DateUtil;
+import com.moon.wanxinp2p.repayment.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.repayment.common.enums.RepaymentErrorCode;
 import com.moon.wanxinp2p.repayment.entity.ReceivablePlan;
+import com.moon.wanxinp2p.repayment.entity.RepaymentDetail;
 import com.moon.wanxinp2p.repayment.entity.RepaymentPlan;
 import com.moon.wanxinp2p.repayment.mapper.PlanMapper;
 import com.moon.wanxinp2p.repayment.mapper.ReceivablePlanMapper;
+import com.moon.wanxinp2p.repayment.mapper.RepaymentDetailMapper;
 import com.moon.wanxinp2p.repayment.model.EqualInterestRepayment;
 import com.moon.wanxinp2p.repayment.service.RepaymentService;
 import com.moon.wanxinp2p.repayment.util.RepaymentUtil;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +46,7 @@ import java.util.stream.Collectors;
  * @description
  */
 @Service
+@Log4j2
 public class RepaymentServiceImpl implements RepaymentService {
 
     @Autowired
@@ -40,6 +54,12 @@ public class RepaymentServiceImpl implements RepaymentService {
 
     @Autowired
     private ReceivablePlanMapper receivablePlanMapper;
+
+    @Autowired
+    private RepaymentDetailMapper repaymentDetailMapper;
+
+    @Autowired
+    private DepositoryAgentApiAgent depositoryAgentApiAgent;
 
     /**
      * 启动还款
@@ -176,5 +196,105 @@ public class RepaymentServiceImpl implements RepaymentService {
         receivablePlan.setCommission(commissionMap.get(plan.getNumberOfPeriods()));
         // 保存到数据库
         receivablePlanMapper.insert(receivablePlan);
+    }
+
+    /**
+     * 执行还款
+     *
+     * @param date 还款日期
+     */
+    @Override
+    public void executeRepayment(String date) {
+        // 查询到期的还款计划
+        List<RepaymentPlan> repaymentPlanList = selectDueRepayment(date);
+
+        // 循环生成还款明细
+        repaymentPlanList.forEach(repaymentPlan -> {
+            RepaymentDetail repaymentDetail = saveRepaymentDetail(repaymentPlan);
+
+            // 向存管代理发起还款预处理
+            String requestNo = repaymentDetail.getRequestNo();
+            boolean result = preRepayment(repaymentPlan, requestNo);
+            if (result) {
+                log.info("executeRepayment 发起还款预处理成功，请求流水号：{}", requestNo);
+                // TODO: 待补充还款流程
+            }
+        });
+        // TODO: 待补充还款流程
+    }
+
+    /**
+     * 查询所有到期的还款计划
+     *
+     * @param date 格式：yyyy-MM-dd
+     * @return
+     */
+    @Override
+    public List<RepaymentPlan> selectDueRepayment(String date) {
+        return planMapper.selectDueRepayment(date);
+    }
+
+    /**
+     * 根据还款计划生成还款明细并保存
+     *
+     * @param repaymentPlan 还款计划
+     * @return
+     */
+    @Override
+    public RepaymentDetail saveRepaymentDetail(RepaymentPlan repaymentPlan) {
+        // 根据还款计划查询还款明细
+        RepaymentDetail repaymentDetail = repaymentDetailMapper.selectOne(
+                Wrappers.<RepaymentDetail>lambdaQuery()
+                        .eq(RepaymentDetail::getRepaymentPlanId, repaymentPlan.getId())
+        );
+
+        // 如果数据库不存在记录，则新增一条还款明细并返回
+        return Optional.ofNullable(repaymentDetail).orElseGet(() -> {
+            RepaymentDetail detail = new RepaymentDetail();
+            // 还款计划项标识
+            detail.setRepaymentPlanId(repaymentPlan.getId());
+            // 实还本息
+            detail.setAmount(repaymentPlan.getAmount());
+            // 实际还款时间
+            detail.setRepaymentDate(LocalDateTime.now());
+            // 请求流水号
+            detail.setRequestNo(CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX));
+            // 未同步
+            detail.setStatus(StatusCode.STATUS_OUT.getCode());
+            // 保存数据
+            repaymentDetailMapper.insert(detail);
+            return detail;
+        });
+    }
+
+    /**
+     * 还款预处理：冻结借款人应还金额
+     *
+     * @param repaymentPlan
+     * @param preRequestNo
+     * @return
+     */
+    @Override
+    public boolean preRepayment(RepaymentPlan repaymentPlan, String preRequestNo) {
+        // 1. 构造还款预处理请求数据
+        UserAutoPreTransactionRequest userAutoPreTransactionRequest = new UserAutoPreTransactionRequest();
+        // 冻结金额
+        userAutoPreTransactionRequest.setAmount(repaymentPlan.getAmount());
+        // 预处理业务类型
+        userAutoPreTransactionRequest.setBizType(PreprocessBusinessTypeCode.REPAYMENT.getCode());
+        // 标的号
+        userAutoPreTransactionRequest.setProjectNo(repaymentPlan.getProjectNo());
+        // 请求流水号
+        userAutoPreTransactionRequest.setRequestNo(preRequestNo);
+        // 标的用户编码
+        userAutoPreTransactionRequest.setUserNo(repaymentPlan.getUserNo());
+        // 关联业务实体标识
+        userAutoPreTransactionRequest.setId(repaymentPlan.getId());
+
+        // 2. 远程请求存管代理服务
+        RestResponse<String> restResponse = depositoryAgentApiAgent.userAutoPreTransaction(userAutoPreTransactionRequest);
+
+        // 3. 返回结果
+        return DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(restResponse.getResult());
     }
 }
