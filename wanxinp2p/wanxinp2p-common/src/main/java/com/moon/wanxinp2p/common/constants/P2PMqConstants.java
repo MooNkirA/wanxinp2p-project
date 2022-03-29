@@ -19,6 +19,12 @@ public final class P2PMqConstants {
      */
     public final static String TOPIC_CONFIRM_REPAYMENT = "TP_CONFIRM_REPAYMENT";
 
+    /**
+     * 确认还款事务生产者分组
+     */
+    public final static String TX_PRODUCER_GROUP_CONFIRM_REPAYMENT = "PID_CONFIRM_REPAYMENT";
+
+
     private P2PMqConstants() {
     }
 

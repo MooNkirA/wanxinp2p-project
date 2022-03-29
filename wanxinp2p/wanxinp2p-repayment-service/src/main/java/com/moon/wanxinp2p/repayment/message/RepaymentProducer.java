@@ -33,7 +33,8 @@ public class RepaymentProducer {
         Message<String> msg = MessageBuilder.withPayload(jsonObject.toJSONString()).build();
 
         // 2.发送消息
-        rocketMQTemplate.sendMessageInTransaction("PID_CONFIRM_REPAYMENT", P2PMqConstants.TOPIC_CONFIRM_REPAYMENT, msg, null);
+        rocketMQTemplate.sendMessageInTransaction(P2PMqConstants.TX_PRODUCER_GROUP_CONFIRM_REPAYMENT,
+                P2PMqConstants.TOPIC_CONFIRM_REPAYMENT, msg, null);
     }
 
 }

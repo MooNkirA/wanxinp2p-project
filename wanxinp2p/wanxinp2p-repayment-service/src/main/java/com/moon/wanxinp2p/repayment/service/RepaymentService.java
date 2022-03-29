@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.repayment.service;
 
 import com.moon.wanxinp2p.api.repayment.model.ProjectWithTendersDTO;
+import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.repayment.entity.RepaymentDetail;
 import com.moon.wanxinp2p.repayment.entity.RepaymentPlan;
 
@@ -55,4 +56,13 @@ public interface RepaymentService {
      * @return
      */
     boolean preRepayment(RepaymentPlan repaymentPlan, String preRequestNo);
+
+    /**
+     * 确认还款处理
+     *
+     * @param repaymentPlan
+     * @param repaymentRequest
+     * @return
+     */
+    boolean confirmRepayment(RepaymentPlan repaymentPlan, RepaymentRequest repaymentRequest);
 }

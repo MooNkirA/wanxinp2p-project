@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.moon.wanxinp2p.api.repayment.model.ProjectWithTendersDTO;
 import com.moon.wanxinp2p.common.constants.P2PMqConstants;
 import com.moon.wanxinp2p.repayment.service.RepaymentService;
+import lombok.extern.log4j.Log4j2;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RocketMQMessageListener(topic = P2PMqConstants.TOPIC_START_REPAYMENT, consumerGroup = "CID_START_REPAYMENT")
-@Slf4j
+@Log4j2
 public class StartRepaymentMessageConsumer implements RocketMQListener<String> {
 
     @Autowired
