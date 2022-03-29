@@ -19,6 +19,7 @@ public enum RepaymentErrorCode implements ErrorCode {
     E_170102(150102, "不支持先息后本还款方式"),
     E_170103(150103, "不支持等额本金还款方式"),
     E_170104(150104, "非支持的还款方式"),
+    E_170105(150105, "银行存管系统确认还款失败"),
     ;
 
     private final int code;

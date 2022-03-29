@@ -232,10 +232,8 @@ public class RepaymentServiceImpl implements RepaymentService {
                 RepaymentRequest repaymentRequest = generateRepaymentRequest(repaymentPlan, preRequestNo);
                 // 发送确认还款事务消息
                 repaymentProducer.confirmRepayment(repaymentPlan, repaymentRequest);
-                // TODO: 待补充还款流程
             }
         });
-        // TODO: 待补充还款流程
     }
 
     /**
@@ -323,8 +321,9 @@ public class RepaymentServiceImpl implements RepaymentService {
     @Override
     @Transactional // 涉及多个表更新，需要本地事务控制
     public boolean confirmRepayment(RepaymentPlan repaymentPlan, RepaymentRequest repaymentRequest) {
+        // 注意，这里取预处理的请求流水号，因为生成还款明细记录是在请求预处理之前
+        String requestNo = repaymentRequest.getPreRequestNo();
         // 1. 更新还款明细（repayment_detail 表的 STATUS 字段）为：已同步
-        String requestNo = repaymentRequest.getRequestNo();
         repaymentDetailMapper.update(null,
                 Wrappers.<RepaymentDetail>lambdaUpdate()
                         .set(RepaymentDetail::getStatus, StatusCode.STATUS_IN.getCode())
@@ -403,5 +402,21 @@ public class RepaymentServiceImpl implements RepaymentService {
         repaymentRequest.setDetails(repaymentDetailRequestList);
 
         return repaymentRequest;
+    }
+
+    /**
+     * 远程调用确认还款接口
+     *
+     * @param repaymentPlan
+     * @param repaymentRequest
+     */
+    @Override
+    public void invokeConfirmRepayment(RepaymentPlan repaymentPlan, RepaymentRequest repaymentRequest) {
+        // 远程调用存管代理服务确认还款方法
+        RestResponse<String> restResponse = depositoryAgentApiAgent.confirmRepayment(repaymentRequest);
+        if (!DepositoryReturnCode.RETURN_CODE_00000.getCode().equals(restResponse.getResult())) {
+            // 根据响应码判断是否成功，失败抛出业务异常
+            throw new BusinessException(RepaymentErrorCode.E_170105);
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.domain.RestResponse;
@@ -66,4 +67,12 @@ public interface DepositoryAgentApi {
      * @return
      */
     RestResponse<String> modifyProjectStatus(ModifyProjectStatusDTO modifyProjectStatusDTO);
+
+    /**
+     * 还款确认
+     *
+     * @param repaymentRequest 还款信息
+     * @return
+     */
+    RestResponse<String> confirmRepayment(RepaymentRequest repaymentRequest);
 }

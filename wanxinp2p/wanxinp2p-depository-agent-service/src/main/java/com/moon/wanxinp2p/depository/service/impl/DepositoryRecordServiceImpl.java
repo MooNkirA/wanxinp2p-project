@@ -12,11 +12,13 @@ import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.ProjectRequestDataDTO;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
 import com.moon.wanxinp2p.common.cache.Cache;
 import com.moon.wanxinp2p.common.constants.CommonConstants;
 import com.moon.wanxinp2p.common.constants.ServiceNameConstants;
+import com.moon.wanxinp2p.common.enums.PreprocessBusinessTypeCode;
 import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
@@ -371,5 +373,38 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
 
         // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(更新标的状态)，根据结果修改状态并返回结果
         return sendHttpGet("MODIFY_PROJECT", reqData, depositoryRecord);
+    }
+
+    /**
+     * 还款确认
+     *
+     * @param repaymentRequest
+     * @return
+     */
+    @Override
+    public DepositoryResponseDTO<DepositoryBaseResponse> confirmRepayment(RepaymentRequest repaymentRequest) {
+        // 创建 DepositoryRecord 记录对象，设置必要的属性
+        String requestNo = repaymentRequest.getRequestNo();
+        DepositoryRecord depositoryRecord = new DepositoryRecord()
+                .setRequestNo(requestNo) // 设置请求流水号
+                .setRequestType(PreprocessBusinessTypeCode.REPAYMENT.getCode()) // 设置请求类型
+                .setObjectType("Repayment") // 设置关联业务实体类型
+                .setObjectId(repaymentRequest.getId()); // 设置关联业务实体标识
+
+        // 保存交易记录（实现幂等性）
+        DepositoryResponseDTO<DepositoryBaseResponse> responseDTO = handleIdempotent(depositoryRecord);
+        if (responseDTO != null) {
+            return responseDTO;
+        }
+
+        // 重新查询交易记录
+        depositoryRecord = getEntityByRequestNo(requestNo);
+
+        // 对请求业务数据报文进行 base64 处理
+        String jsonString = JSON.toJSONString(repaymentRequest);
+        String reqData = EncryptUtil.encodeUTF8StringBase64(jsonString);
+
+        // 使用 OKHttpClient 发送 Http 请求向银行存管系统发送数据(确认还款)，根据结果修改状态并返回结果
+        return sendHttpGet("CONFIRM_REPAYMENT", reqData, depositoryRecord);
     }
 }
