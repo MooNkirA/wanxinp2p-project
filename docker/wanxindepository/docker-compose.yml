@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  wanxindepository:
+    container_name: wanxindepository
+    build: .
+    image: wanxindepository:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "55010:55010"
+    restart: always
+    volumes:
+      - "./data/apollo:/config-cache"
+      - "./logs:/logs"
+    environment:
+      JAVA_OPTS: "-Dserver.port=55010 -Denv=dev -Dapollo.cluster=DEFAULT"

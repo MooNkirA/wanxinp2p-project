@@ -52,4 +52,16 @@ public class RepaymentController implements RepaymentApi {
     public void executeRepayment(@PathVariable String date) {
         repaymentService.executeRepayment(date);
     }
+
+    /**
+     * 手动触发还款短信提醒
+     *
+     * @param date
+     */
+    @ApiOperation("手动触发还款短信提醒")
+    @GetMapping("/repayment-notify/{date}")
+    public void testRepaymentNotify(@PathVariable String date) {
+        repaymentService.sendRepaymentNotify(date);
+    }
+
 }

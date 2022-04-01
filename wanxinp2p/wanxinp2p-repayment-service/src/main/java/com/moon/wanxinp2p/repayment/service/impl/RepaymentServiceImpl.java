@@ -1,6 +1,7 @@
 package com.moon.wanxinp2p.repayment.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.moon.wanxinp2p.api.consumer.model.BorrowerDTO;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.repayment.model.ProjectWithTendersDTO;
 import com.moon.wanxinp2p.api.repayment.model.RepaymentDetailRequest;
@@ -16,6 +17,7 @@ import com.moon.wanxinp2p.common.enums.StatusCode;
 import com.moon.wanxinp2p.common.exception.BusinessException;
 import com.moon.wanxinp2p.common.util.CodeNoUtil;
 import com.moon.wanxinp2p.common.util.DateUtil;
+import com.moon.wanxinp2p.repayment.agent.ConsumerApiAgent;
 import com.moon.wanxinp2p.repayment.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.repayment.common.enums.RepaymentErrorCode;
 import com.moon.wanxinp2p.repayment.entity.ReceivableDetail;
@@ -29,6 +31,7 @@ import com.moon.wanxinp2p.repayment.mapper.RepaymentDetailMapper;
 import com.moon.wanxinp2p.repayment.message.RepaymentProducer;
 import com.moon.wanxinp2p.repayment.model.EqualInterestRepayment;
 import com.moon.wanxinp2p.repayment.service.RepaymentService;
+import com.moon.wanxinp2p.repayment.sms.SmsService;
 import com.moon.wanxinp2p.repayment.util.RepaymentUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +74,12 @@ public class RepaymentServiceImpl implements RepaymentService {
 
     @Autowired
     private RepaymentProducer repaymentProducer;
+
+    @Autowired
+    private ConsumerApiAgent consumerApiAgent;
+
+    @Autowired
+    private SmsService smsService;
 
     /**
      * 启动还款
@@ -214,6 +223,7 @@ public class RepaymentServiceImpl implements RepaymentService {
      *
      * @param date 还款日期
      */
+    @Deprecated
     @Override
     public void executeRepayment(String date) {
         // 查询到期的还款计划
@@ -245,6 +255,48 @@ public class RepaymentServiceImpl implements RepaymentService {
     @Override
     public List<RepaymentPlan> selectDueRepayment(String date) {
         return planMapper.selectDueRepayment(date);
+    }
+
+    /**
+     * 执行还款
+     *
+     * @param date          还款日期
+     * @param shardingCount 分片数
+     * @param shardingItem  当前分片号
+     */
+    @Override
+    public void executeRepayment(String date, int shardingCount, int shardingItem) {
+        // 查询到期的还款计划
+        List<RepaymentPlan> repaymentPlanList = selectDueRepayment(date, shardingCount, shardingItem);
+
+        // 循环生成还款明细
+        repaymentPlanList.forEach(repaymentPlan -> {
+            RepaymentDetail repaymentDetail = saveRepaymentDetail(repaymentPlan);
+            log.info("当前分片：{} --> {}", shardingItem, repaymentPlan);
+
+            // 向存管代理发起还款预处理
+            String preRequestNo = repaymentDetail.getRequestNo(); // 预处理请求流水号
+            boolean result = preRepayment(repaymentPlan, preRequestNo);
+            if (result) {
+                log.info("executeRepayment 发起还款预处理成功，请求流水号：{}", preRequestNo);
+                // 构造还款信息请求数据（用于本地事务和发送给存管代理）
+                RepaymentRequest repaymentRequest = generateRepaymentRequest(repaymentPlan, preRequestNo);
+                // 发送确认还款事务消息
+                repaymentProducer.confirmRepayment(repaymentPlan, repaymentRequest);
+            }
+        });
+    }
+
+    /**
+     * 执行还款
+     *
+     * @param date          还款日期
+     * @param shardingCount 分片数
+     * @param shardingItem  当前分片号
+     */
+    @Override
+    public List<RepaymentPlan> selectDueRepayment(String date, int shardingCount, int shardingItem) {
+        return planMapper.selectDueRepaymentBySharding(date, shardingCount, shardingItem);
     }
 
     /**
@@ -418,5 +470,28 @@ public class RepaymentServiceImpl implements RepaymentService {
             // 根据响应码判断是否成功，失败抛出业务异常
             throw new BusinessException(RepaymentErrorCode.E_170105);
         }
+    }
+
+    /**
+     * 查询还款人相关信息，并调用发送短信接口进行还款提醒
+     *
+     * @param date 还款日期
+     */
+    @Override
+    public void sendRepaymentNotify(String date) {
+        // 1. 查询到期的还款计划
+        List<RepaymentPlan> repaymentPlanList = selectDueRepayment(date);
+
+        // 2. 遍历还款计划
+        repaymentPlanList.forEach(plan -> {
+            // 3. 查询还款人的信息
+            RestResponse<BorrowerDTO> restResponse = consumerApiAgent.getBorrowerMobile(plan.getConsumerId());
+            BorrowerDTO borrower = restResponse.getResult();
+
+            // 4. 根据还款人的手机号发送提醒短信
+            if (borrower != null) {
+                smsService.sendRepaymentNotify(borrower.getMobile(), date, plan.getAmount());
+            }
+        });
     }
 }

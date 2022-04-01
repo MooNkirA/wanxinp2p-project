@@ -30,6 +30,7 @@ public interface RepaymentService {
      *
      * @param date 还款日期
      */
+    @Deprecated
     void executeRepayment(String date);
 
     /**
@@ -39,6 +40,25 @@ public interface RepaymentService {
      * @return
      */
     List<RepaymentPlan> selectDueRepayment(String date);
+
+    /**
+     * 执行还款
+     *
+     * @param date          还款日期
+     * @param shardingCount 分片数
+     * @param shardingItem  当前分片号
+     */
+    void executeRepayment(String date, int shardingCount, int shardingItem);
+
+    /**
+     * 查询所有到期的还款计划
+     *
+     * @param date          格式：yyyy-MM-dd
+     * @param shardingCount 分片数
+     * @param shardingItem  当前分片号
+     * @return
+     */
+    List<RepaymentPlan> selectDueRepayment(String date, int shardingCount, int shardingItem);
 
     /**
      * 根据还款计划生成还款明细并保存
@@ -73,4 +93,11 @@ public interface RepaymentService {
      * @param repaymentRequest
      */
     void invokeConfirmRepayment(RepaymentPlan repaymentPlan, RepaymentRequest repaymentRequest);
+
+    /**
+     * 查询还款人相关信息，并调用发送短信接口进行还款提醒
+     *
+     * @param date 还款日期
+     */
+    void sendRepaymentNotify(String date);
 }

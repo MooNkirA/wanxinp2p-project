@@ -24,4 +24,14 @@ public interface PlanMapper extends BaseMapper<RepaymentPlan> {
      */
     List<RepaymentPlan> selectDueRepayment(@Param("date") String date);
 
+    /**
+     * 根据日期与服务分片，查询所有还款计划
+     *
+     * @param date  日期
+     * @param count 分片数量
+     * @param item  当前作业的分片号
+     * @return
+     */
+    List<RepaymentPlan> selectDueRepaymentBySharding(@Param("date") String date, @Param("shardingCount") int count, @Param("shardingItem") int item);
+
 }

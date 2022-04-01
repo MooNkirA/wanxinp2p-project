@@ -59,6 +59,14 @@ public interface ConsumerApi {
     RestResponse<BorrowerDTO> getBorrower(Long id);
 
     /**
+     * 获取借款人用户信息-供微服务访问
+     *
+     * @param id 用户标识
+     * @return
+     */
+    RestResponse<BorrowerDTO> getBorrowerMobile(Long id);
+
+    /**
      * 获取当前登录用户余额信息
      *
      * @return

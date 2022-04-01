@@ -115,6 +115,20 @@ public class ConsumerController implements ConsumerApi {
     }
 
     /**
+     * 获取借款人用户信息-供微服务访问
+     *
+     * @param id 用户标识
+     * @return
+     */
+    @ApiOperation("获取借款人用户信息-供微服务访问")
+    @ApiImplicitParam(name = "id", value = "用户标识", required = true, dataType = "Long", paramType = "path")
+    @GetMapping("/l/borrowers/{id}")
+    @Override
+    public RestResponse<BorrowerDTO> getBorrowerMobile(@PathVariable Long id) {
+        return RestResponse.success(consumerService.getBorrower(id));
+    }
+
+    /**
      * 获取当前登录用户余额信息
      *
      * @return

@@ -12,4 +12,12 @@
           AND REPAYMENT_STATUS = '0';
     </select>
 
+    <select id="selectDueRepaymentBySharding" resultType="com.moon.wanxinp2p.repayment.entity.RepaymentPlan">
+        SELECT *
+        FROM repayment_plan
+        WHERE DATE_FORMAT(SHOULD_REPAYMENT_DATE, '%Y-%m-%d') = #{date}
+          AND REPAYMENT_STATUS = '0'
+          AND MOD(NUMBER_OF_PERIODS, #{shardingCount}) = #{shardingItem};
+    </select>
+
 </mapper>

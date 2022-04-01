@@ -1,0 +1,18 @@
+version: '3'
+services:
+  wanxinp2p-web:
+    container_name: wanxinp2p-web
+    image: ebiven/vue-cli
+    command:
+      - /bin/sh
+      - -c
+      - |
+        #npm install sass-loader -D
+        #npm install node-sass --save-dev
+        npm run dev:h5
+    volumes:
+      - ./my-project:/code
+    network_mode: "host"
+    restart: always
+    ports:
+      - "8081:8081"

@@ -1,0 +1,128 @@
+version: "3"
+
+services:
+  wanxinp2p-discover-server:
+    container_name: wanxinp2p-discover-server
+    build: wanxinp2p-discover-server/
+    image: wanxinp2p-discover-server:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53000:53000"
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53000"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m"
+
+  wanxinp2p-gateway-server:
+    container_name: wanxinp2p-gateway-server
+    build: wanxinp2p-gateway-server/
+    image: wanxinp2p-gateway-server:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "9876:9876"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "9876"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=9876 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-uaa-service:
+    container_name: wanxinp2p-uaa-service
+    build: wanxinp2p-uaa-service/
+    image: wanxinp2p-uaa-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53020:53020"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53020"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53020 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-account-service:
+    container_name: wanxinp2p-account-service
+    build: wanxinp2p-account-service/
+    image: wanxinp2p-account-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53030:53030"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53030"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53030 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-consumer-service:
+    container_name: wanxinp2p-consumer-service
+    build: wanxinp2p-consumer-service/
+    image: wanxinp2p-consumer-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53050:53050"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53050"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53050 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-transaction-service:
+    container_name: wanxinp2p-transaction-service
+    build: wanxinp2p-transaction-service/
+    image: wanxinp2p-transaction-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53060:53060"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53060"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53060 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-depository-agent-service:
+    container_name: wanxinp2p-depository-agent-service
+    build: wanxinp2p-depository-agent-service/
+    image: wanxinp2p-depository-agent-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53070:53070"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53070"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53070 -Denv=dev -Dapollo.cluster=DEFAULT"
+
+  wanxinp2p-repayment-service:
+    container_name: wanxinp2p-repayment-service
+    build: wanxinp2p-repayment-service/
+    image: wanxinp2p-repayment-service:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "53080:53080"
+    depends_on:
+      - wanxinp2p-discover-server
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      SERVER_PORT: "53080"
+      JAVA_OPTS: "-Xms512m -Xmx512m -Xmn256m -Dserver.port=53080 -Denv=dev -Dapollo.cluster=DEFAULT"
