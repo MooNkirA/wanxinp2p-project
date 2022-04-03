@@ -1,0 +1,26 @@
+gogs:
+  image: docker.io/gogs/gogs:latest
+  links:
+    - mysql-gogs:mysql
+  ports:
+    - "10022:22"
+    - "10911:60080"
+  volumes:
+    - "./data:/data/gogs"
+    - "./repo:/data/git/gogs-repositories"
+  restart: always
+
+mysql-gogs:
+  image: docker.io/mysql:5.7.21
+  ports:
+    - "3311:3311"
+  volumes:
+    - ./mysql-gogs/mysql:/var/lib/mysql
+    - ./mysql-gogs/conf.d:/etc/mysql/conf.d:rw
+  environment:
+    - MYSQL_DATABASE=gogs
+    - MYSQL_USER=gogs
+    - MYSQL_PASSWORD=gogs
+    - MYSQL_ROOT_PASSWORD=root
+  command: mysqld --lower_case_table_names=1 --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+  restart: always

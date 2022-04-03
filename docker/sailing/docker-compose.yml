@@ -1,0 +1,15 @@
+version: "3"
+
+services:
+  sailing:
+    container_name: sailing
+    build: .
+    image: sailing:1.0-SNAPSHOT
+    network_mode: "host"
+    ports:
+      - "56085:56085"
+    restart: always
+    volumes:
+      - "./logs:/logs"
+    environment:
+      JAVA_OPTS: "-Xms256m -Xmx256m -Xmn128m"

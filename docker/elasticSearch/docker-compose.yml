@@ -1,0 +1,28 @@
+version: '3'
+services:
+  elastic:
+    container_name: "elastic"
+    image: bachue/elasticsearch-ik:6.2.4
+    network_mode: "host"
+    restart: "always"
+    environment:
+      - TZ='Asia/Shanghai'
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - "./elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml"
+      - "./data:/usr/share/elasticsearch/data"
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+  elasticsearch-head:
+    image: wallbase/elasticsearch-head:6-alpine
+    network_mode: "host"
+    container_name: "elasticsearch-head"
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - '9100:9100'

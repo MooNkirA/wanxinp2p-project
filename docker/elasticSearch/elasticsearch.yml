@@ -1,0 +1,23 @@
+bootstrap:
+    memory_lock: true
+cluster:
+    name: wanxinp2p
+discovery:
+    type: single-node
+    zen:
+        minimum_master_nodes: 1
+http:
+    cors:
+        allow-origin: '"*"'
+        enabled: true
+network:
+    host: 0.0.0.0
+node:
+    name: wanxinp2p_node
+xpack:
+    monitoring:
+        enabled: false
+    security:
+        enabled: false
+    watcher:
+        enabled: false

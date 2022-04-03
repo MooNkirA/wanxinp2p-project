@@ -1,0 +1,20 @@
+version: '3'
+services:
+  mysql:
+    container_name: "mysql"
+    image: "docker.io/mysql:5.7.21"
+    restart: always
+    network_mode: "host"
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: "123456"
+      TZ: Asia/Shanghai
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+    volumes:
+      - "./db:/var/lib/mysql"
+      - "./init:/docker-entrypoint-initdb.d/"
+    ports:
+      - "3306:3306"
