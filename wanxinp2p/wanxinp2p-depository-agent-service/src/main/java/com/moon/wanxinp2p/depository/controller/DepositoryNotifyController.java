@@ -60,4 +60,18 @@ public class DepositoryNotifyController {
         return "OK";
     }
 
+    @ApiOperation("接受银行存管系统充值返回结果")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "serviceName", value = "请求的银行存管接口名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "platformNo", value = "平台编号，平台与存管系统签约时获取", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "signature", value = "对reqData参数的签名", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "reqData", value = "业务数据报文，json格式", required = true, dataType = "String", paramType = "query"),})
+    @GetMapping(value = "/gateway", params = "serviceName=RECHARGE")
+    public String receiveDepositoryRechargeResult(@RequestParam("serviceName") String serviceName,
+                                                  @RequestParam("platformNo") String platformNo,
+                                                  @RequestParam("signature") String signature,
+                                                  @RequestParam("reqData") String reqData) {
+        return "OK";
+    }
+
 }

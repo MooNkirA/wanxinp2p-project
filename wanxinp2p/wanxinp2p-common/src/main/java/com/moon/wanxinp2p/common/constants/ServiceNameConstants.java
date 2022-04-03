@@ -12,6 +12,8 @@ public final class ServiceNameConstants {
 
     /* 存管接口名 - 个人绑卡开户接口 */
     public final static String NAME_PERSONAL_REGISTER = "PERSONAL_REGISTER";
+    /* 存管接口名 - 用户充值接口 */
+    public final static String NAME_RECHARGE = "RECHARGE";
 
     private ServiceNameConstants() {
     }

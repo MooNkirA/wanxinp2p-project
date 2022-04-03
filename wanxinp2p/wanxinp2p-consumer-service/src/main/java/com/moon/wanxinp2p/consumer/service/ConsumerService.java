@@ -10,6 +10,7 @@ import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * 用户业务层接口
@@ -76,4 +77,13 @@ public interface ConsumerService extends IService<Consumer> {
      * @return
      */
     RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo);
+
+    /**
+     * 生成充值请求数据
+     *
+     * @param amount      充值金额
+     * @param callbackURL 回调地址
+     * @return
+     */
+    RestResponse<GatewayRequest> createRechargeRecord(String amount, String callbackURL);
 }

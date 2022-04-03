@@ -7,6 +7,7 @@ import com.moon.wanxinp2p.api.depository.model.DepositoryBaseResponse;
 import com.moon.wanxinp2p.api.depository.model.DepositoryResponseDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.LoanRequest;
+import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
 import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
@@ -160,5 +161,20 @@ public class DepositoryAgentController implements DepositoryAgentApi {
     @Override
     public RestResponse<String> confirmRepayment(@RequestBody RepaymentRequest repaymentRequest) {
         return getRestResponse(depositoryRecordService.confirmRepayment(repaymentRequest));
+    }
+
+    /**
+     * 用户充值
+     *
+     * @param rechargeRequest 用户充值请求数据
+     * @return
+     */
+    @ApiOperation("生成充值请求数据")
+    @ApiImplicitParam(name = "rechargeRequest", value = "充值信息", required = true,
+            dataType = "RechargeRequest", paramType = "body")
+    @PostMapping("/l/recharges")
+    @Override
+    public RestResponse<GatewayRequest> createRechargeRecord(@RequestBody RechargeRequest rechargeRequest) {
+        return RestResponse.success(depositoryRecordService.createRechargeRecord(rechargeRequest));
     }
 }

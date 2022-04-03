@@ -24,6 +24,10 @@ public enum PreprocessBusinessTypeCode {
      * 用户 代偿还款 业务代码
      */
     COMPENSATORY_REPAYMENT("COMPENSATORY_REPAYMENT", "代偿还款"),
+    /**
+     * 用户 充值 业务代码
+     */
+    RECHARGE("RECHARGE", "充值"),
     ;
 
     private String code;

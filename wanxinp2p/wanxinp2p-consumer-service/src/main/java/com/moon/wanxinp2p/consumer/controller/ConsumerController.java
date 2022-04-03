@@ -14,6 +14,7 @@ import com.moon.wanxinp2p.consumer.common.util.SecurityUtil;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -140,5 +142,22 @@ public class ConsumerController implements ConsumerApi {
         // 使用工具类，从请求域中获取到用户手机号，再根据手机查询到用户数据
         ConsumerDTO dto = consumerService.getByMobile(SecurityUtil.getUser().getMobile());
         return consumerService.getBalanceFromDepository(dto.getUserNo());
+    }
+
+    /**
+     * 生成充值请求数据
+     *
+     * @param amount      充值金额
+     * @param callbackURL 回调地址
+     * @return
+     */
+    @ApiOperation("生成充值请求数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "amount", value = "金额", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "callbackURL", value = "通知结果回调Url", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/my/recharge-records")
+    @Override
+    public RestResponse<GatewayRequest> createRechargeRecord(@RequestParam String amount, @RequestParam String callbackURL) {
+        return consumerService.createRechargeRecord(amount, callbackURL);
     }
 }
