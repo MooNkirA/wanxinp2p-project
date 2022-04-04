@@ -2,8 +2,12 @@ package com.moon.wanxinp2p.consumer.message;
 
 import com.alibaba.fastjson.JSON;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
+import com.moon.wanxinp2p.api.depository.model.DepositoryRechargeResponse;
+import com.moon.wanxinp2p.api.depository.model.DepositoryWithdrawResponse;
 import com.moon.wanxinp2p.common.constants.ServiceNameConstants;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
+import com.moon.wanxinp2p.consumer.service.RechargeRecordService;
+import com.moon.wanxinp2p.consumer.service.WithdrawRecordService;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -32,6 +36,10 @@ public class GatewayNotifyConsumer {
 
     @Autowired
     private ConsumerService consumerService;
+    @Autowired
+    private RechargeRecordService rechargeRecordService;
+    @Autowired
+    private WithdrawRecordService withdrawRecordService;
 
     /*
      * 从 apollo 中心注入 rocketmq 相关配置。
@@ -92,6 +100,14 @@ public class GatewayNotifyConsumer {
                         DepositoryConsumerResponse response = JSON.parseObject(body, DepositoryConsumerResponse.class);
                         // 调用用户更新状态业务方法
                         consumerService.modifyResult(response);
+                    } else if (ServiceNameConstants.NAME_RECHARGE.equals(tags)) {
+                        DepositoryRechargeResponse response = JSON.parseObject(body, DepositoryRechargeResponse.class);
+                        // 调用充值接口更新结果状态
+                        rechargeRecordService.modifyResult(response);
+                    } else if (ServiceNameConstants.NAME_WITHDRAW.equals(tags)) {
+                        DepositoryWithdrawResponse response = JSON.parseObject(body, DepositoryWithdrawResponse.class);
+                        // 调用提现接口更新结果状态
+                        withdrawRecordService.modifyResult(response);
                     }
                     // ...其他的消息类型判断与处理
                 } catch (Exception e) {
@@ -106,4 +122,5 @@ public class GatewayNotifyConsumer {
         // 5. 启动消费者
         consumer.start();
     }
+
 }

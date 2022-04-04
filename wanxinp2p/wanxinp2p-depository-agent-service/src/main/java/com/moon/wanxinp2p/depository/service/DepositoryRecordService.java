@@ -8,6 +8,7 @@ import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.depository.model.WithdrawRequest;
 import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
@@ -88,4 +89,12 @@ public interface DepositoryRecordService extends IService<DepositoryRecord> {
      * @return
      */
     GatewayRequest createRechargeRecord(RechargeRequest rechargeRequest);
+
+    /**
+     * 保存用户提现记录
+     *
+     * @param withdrawRequest 提现请求数据
+     * @return
+     */
+    GatewayRequest createWithdrawRecord(WithdrawRequest withdrawRequest);
 }

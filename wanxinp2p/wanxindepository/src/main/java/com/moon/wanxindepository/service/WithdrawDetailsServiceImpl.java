@@ -70,7 +70,7 @@ public class WithdrawDetailsServiceImpl extends ServiceImpl<WithdrawDetailsMappe
 
             //产生提现成功消息
             response.setSuccess();
-            //producer.withdraw(withdrawRequest.getAppCode(), response);
+            producer.withdraw(withdrawRequest.getAppCode(), response);
         } catch (Exception e) {
             log.error(e.getMessage());
 
@@ -80,7 +80,7 @@ public class WithdrawDetailsServiceImpl extends ServiceImpl<WithdrawDetailsMappe
 
             //产生提现成功消息
             response.setFailure();
-            //producer.withdraw(withdrawRequest.getAppCode(), response);
+            producer.withdraw(withdrawRequest.getAppCode(), response);
             throw new BusinessException(response.getRequestNo(), RemoteReturnCode.EXCEPTION);
         }
         return response;

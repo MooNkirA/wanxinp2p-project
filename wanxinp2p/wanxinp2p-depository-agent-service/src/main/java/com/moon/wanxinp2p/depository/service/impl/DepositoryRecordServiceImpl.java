@@ -13,6 +13,7 @@ import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.ProjectRequestDataDTO;
 import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.depository.model.WithdrawRequest;
 import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
@@ -429,7 +430,7 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         record.setObjectId(rechargeRequest.getId());
         // 请求时间
         record.setCreateDate(LocalDateTime.now());
-        // 数据同步状态（未）
+        // 数据同步状态（未同步）
         record.setRequestStatus(StatusCode.STATUS_OUT.getCode());
         this.save(record); // MP 提供的保存方法
 
@@ -443,6 +444,51 @@ public class DepositoryRecordServiceImpl extends ServiceImpl<DepositoryRecordMap
         GatewayRequest gatewayRequest = new GatewayRequest();
         // 请求的存管接口名，详见《银行存管接口说明.pdf》
         gatewayRequest.setServiceName(ServiceNameConstants.NAME_RECHARGE);
+        // 平台编号，平台与存管系统签约时获取。配置在apollo上
+        gatewayRequest.setPlatformNo(configService.getP2pCode());
+        // 业务数据报文，json格式。进行转码
+        gatewayRequest.setReqData(EncryptUtil.encodeURL(EncryptUtil.encodeUTF8StringBase64(reqData)));
+        // 签名
+        gatewayRequest.setSignature(EncryptUtil.encodeURL(sign));
+        // 银行存管系统地址。配置在apollo上
+        gatewayRequest.setDepositoryUrl(configService.getDepositoryUrl() + "/gateway");
+        return gatewayRequest;
+    }
+
+    /**
+     * 保存用户提现记录
+     *
+     * @param withdrawRequest 提现请求数据
+     * @return
+     */
+    @Override
+    public GatewayRequest createWithdrawRecord(WithdrawRequest withdrawRequest) {
+        /* 1.保存充值信息 */
+        DepositoryRecord record = new DepositoryRecord();
+        // 请求流水号
+        record.setRequestNo(withdrawRequest.getRequestNo());
+        // 请求类型
+        record.setRequestType(DepositoryRequestTypeCode.WITHDRAW.getCode());
+        // 业务实体类型
+        record.setObjectType(CommonConstants.OBJECT_TYPE_CONSUMER);
+        // 关联业务实体标识
+        record.setObjectId(withdrawRequest.getId());
+        // 请求时间
+        record.setCreateDate(LocalDateTime.now());
+        // 数据同步状态（未同步）
+        record.setRequestStatus(StatusCode.STATUS_OUT.getCode());
+        this.save(record); // MP 提供的保存方法
+
+        /* 2.封装返回数据，并进行签名 */
+        // 将充值的数据转成json字符串
+        String reqData = JSON.toJSONString(withdrawRequest);
+        // 调用工具类方法，使用私钥对 json 字符串签名
+        String sign = RSAUtil.sign(reqData, configService.getP2pPrivateKey(), CommonConstants.UTF8);
+
+        // 创建接口返回实体
+        GatewayRequest gatewayRequest = new GatewayRequest();
+        // 请求的存管接口名，详见《银行存管接口说明.pdf》
+        gatewayRequest.setServiceName(ServiceNameConstants.NAME_WITHDRAW);
         // 平台编号，平台与存管系统签约时获取。配置在apollo上
         gatewayRequest.setPlatformNo(configService.getP2pCode());
         // 业务数据报文，json格式。进行转码

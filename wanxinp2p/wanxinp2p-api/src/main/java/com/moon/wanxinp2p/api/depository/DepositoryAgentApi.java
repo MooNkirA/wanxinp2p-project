@@ -6,6 +6,7 @@ import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.LoanRequest;
 import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
 import com.moon.wanxinp2p.api.depository.model.UserAutoPreTransactionRequest;
+import com.moon.wanxinp2p.api.depository.model.WithdrawRequest;
 import com.moon.wanxinp2p.api.repayment.model.RepaymentRequest;
 import com.moon.wanxinp2p.api.transaction.model.ModifyProjectStatusDTO;
 import com.moon.wanxinp2p.api.transaction.model.ProjectDTO;
@@ -84,4 +85,12 @@ public interface DepositoryAgentApi {
      * @return
      */
     RestResponse<GatewayRequest> createRechargeRecord(RechargeRequest rechargeRequest);
+
+    /**
+     * 用户提现
+     *
+     * @param withdrawRequest 用户提现请求数据
+     * @return
+     */
+    RestResponse<GatewayRequest> createWithdrawRecord(WithdrawRequest withdrawRequest);
 }

@@ -12,6 +12,8 @@ import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.util.EncryptUtil;
 import com.moon.wanxinp2p.consumer.common.util.SecurityUtil;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
+import com.moon.wanxinp2p.consumer.service.RechargeRecordService;
+import com.moon.wanxinp2p.consumer.service.WithdrawRecordService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,6 +33,12 @@ public class ConsumerController implements ConsumerApi {
 
     @Autowired
     private ConsumerService consumerService;
+
+    @Autowired
+    private RechargeRecordService rechargeRecordService;
+
+    @Autowired
+    private WithdrawRecordService withdrawRecordService;
 
     /**
      * 用户注册  保存用户信息
@@ -148,7 +156,7 @@ public class ConsumerController implements ConsumerApi {
      * 生成充值请求数据
      *
      * @param amount      充值金额
-     * @param callbackURL 回调地址
+     * @param callbackUrl 回调地址
      * @return
      */
     @ApiOperation("生成充值请求数据")
@@ -157,7 +165,24 @@ public class ConsumerController implements ConsumerApi {
             @ApiImplicitParam(name = "callbackURL", value = "通知结果回调Url", required = true, dataType = "String", paramType = "query")})
     @GetMapping("/my/recharge-records")
     @Override
-    public RestResponse<GatewayRequest> createRechargeRecord(@RequestParam String amount, @RequestParam String callbackURL) {
-        return consumerService.createRechargeRecord(amount, callbackURL);
+    public RestResponse<GatewayRequest> createRechargeRecord(@RequestParam String amount, @RequestParam String callbackUrl) {
+        return rechargeRecordService.createRechargeRecord(amount, callbackUrl);
+    }
+
+    /**
+     * 生成用户提现数据
+     *
+     * @param amount      提现金额
+     * @param callbackUrl 回调地址
+     * @return
+     */
+    @ApiOperation("生成用户提现数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "amount", value = "金额", required = true, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "callbackUrl", value = "通知结果回调Url", required = true, dataType = "String", paramType = "query")})
+    @GetMapping("/my/withdraw-records")
+    @Override
+    public RestResponse<GatewayRequest> createWithdrawRecord(@RequestParam String amount, @RequestParam String callbackUrl) {
+        return withdrawRecordService.createWithdrawRecord(amount, callbackUrl);
     }
 }

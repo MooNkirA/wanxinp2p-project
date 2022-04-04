@@ -18,12 +18,19 @@ public final class P2PMqConstants {
      * 确认还款消息主题
      */
     public final static String TOPIC_CONFIRM_REPAYMENT = "TP_CONFIRM_REPAYMENT";
+    /**
+     * 存管代理服务充值结果通知主题
+     */
+    public final static String TOPIC_GATEWAY_NOTIFY_RECHARGE = "TP_GATEWAY_NOTIFY_AGENT:RECHARGE";
+    /**
+     * 存管代理服务提现结果通知主题
+     */
+    public final static String TOPIC_GATEWAY_NOTIFY_WITHDRAW = "TP_GATEWAY_NOTIFY_AGENT:WITHDRAW";
 
     /**
      * 确认还款事务生产者分组
      */
     public final static String TX_PRODUCER_GROUP_CONFIRM_REPAYMENT = "PID_CONFIRM_REPAYMENT";
-
 
     private P2PMqConstants() {
     }

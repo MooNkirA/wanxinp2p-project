@@ -14,6 +14,8 @@ public final class ServiceNameConstants {
     public final static String NAME_PERSONAL_REGISTER = "PERSONAL_REGISTER";
     /* 存管接口名 - 用户充值接口 */
     public final static String NAME_RECHARGE = "RECHARGE";
+    /* 存管接口名 - 用户提现接口 */
+    public final static String NAME_WITHDRAW = "WITHDRAW";
 
     private ServiceNameConstants() {
     }
