@@ -26,6 +26,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @Api(value = "用户服务的Controller", tags = "Consumer", description = "用户服务API")
@@ -184,5 +187,20 @@ public class ConsumerController implements ConsumerApi {
     @Override
     public RestResponse<GatewayRequest> createWithdrawRecord(@RequestParam String amount, @RequestParam String callbackUrl) {
         return withdrawRecordService.createWithdrawRecord(amount, callbackUrl);
+    }
+
+    /**
+     * 提交身份证图片给百度AI进行识别
+     *
+     * @param file 被上传的文件
+     * @param flag 身份证正反面  取值front 或 back
+     * @return Map集合 识别成功后把身份证上的姓名和身份证号存到map中返回
+     */
+    @ApiOperation("提交身份证图片给百度AI进行识别")
+    @PostMapping("/my/imageRecognition")
+    @Override
+    public RestResponse<Map<String, String>> imageRecognition(@RequestParam("file") MultipartFile file, String flag) {
+        // TODO: 调用百度AI进行身份证识别功能待实现
+        return null;
     }
 }

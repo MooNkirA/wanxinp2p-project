@@ -2,7 +2,7 @@ server:
   port: 56082
   use-forward-headers: true
   tomcat:
-    basedir: ${user.home}/tomcat/tmp
+    basedir: E:/logs/wanxinp2p/tomcat/tmp
     remote_ip_header: x-forwarded-for
     protocol_header: x-forwarded-proto
   servlet:
@@ -25,7 +25,7 @@ spring:
       max-request-size: 4MB
       max-file-size: 4MB
   datasource:
-    url: jdbc:mysql://localhost:3306/farmingdb?useUnicode=true
+    url: jdbc:mysql://localhost:3306/p2p_file?useUnicode=true&useSSL=false
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
@@ -79,12 +79,13 @@ mybatis-plus:
     refresh-mapper: true
     id-type: 0
 
+# 替换为个人的七牛云密钥
 my:
   file:
     qiniu:
       secretKey: key
       accessKey: accessKey
-      domainOfBucket: http://ptkz95z4z.bkt.clouddn.com
+      domainOfBucket: http://测试域名
 
 swagger:
   enable: true

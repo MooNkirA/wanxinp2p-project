@@ -36,6 +36,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 
@@ -289,5 +290,17 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
     @Override
     public RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo) {
         return depositoryAgentApiAgent.getBalance(userNo);
+    }
+
+    /**
+     * 提交身份证图片给百度AI进行识别
+     *
+     * @param file 被上传的文件
+     * @param flag 身份证正反面  取值front 或 back
+     * @return Map集合 识别成功后把身份证上的姓名和身份证号存到map中返回
+     */
+    @Override
+    public Map<String, String> imageRecognition(MultipartFile file, String flag) {
+        return null;
     }
 }

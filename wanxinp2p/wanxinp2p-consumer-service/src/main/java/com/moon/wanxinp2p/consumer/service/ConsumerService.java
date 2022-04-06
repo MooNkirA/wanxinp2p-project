@@ -10,7 +10,9 @@ import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 /**
  * 用户业务层接口
@@ -77,4 +79,13 @@ public interface ConsumerService extends IService<Consumer> {
      * @return
      */
     RestResponse<BalanceDetailsDTO> getBalanceFromDepository(String userNo);
+
+    /**
+     * 提交身份证图片给百度AI进行识别
+     *
+     * @param file 被上传的文件
+     * @param flag 身份证正反面  取值front 或 back
+     * @return Map集合 识别成功后把身份证上的姓名和身份证号存到map中返回
+     */
+    Map<String, String> imageRecognition(MultipartFile file, String flag);
 }
