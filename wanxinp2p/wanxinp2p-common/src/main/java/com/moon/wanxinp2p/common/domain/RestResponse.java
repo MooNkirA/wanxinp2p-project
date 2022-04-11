@@ -42,6 +42,13 @@ public class RestResponse<T> {
         return response;
     }
 
+    public static <T> RestResponse<T> result(ErrorCode errorCoder) {
+        RestResponse<T> response = new RestResponse<>();
+        response.setCode(errorCoder.getCode());
+        response.setMsg(errorCoder.getDesc());
+        return response;
+    }
+
     public RestResponse() {
         this(0, "");
     }

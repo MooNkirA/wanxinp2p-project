@@ -1,0 +1,11 @@
+server:
+  port: 59020
+spring:
+  application:
+    name: hystrix-discovery-server
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+  instance:
+    hostname: localhost
