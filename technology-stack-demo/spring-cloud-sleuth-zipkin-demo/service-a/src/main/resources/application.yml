@@ -1,0 +1,18 @@
+server:
+  port: 58021
+  servlet:
+    context-path: /service-a
+spring:
+  application:
+    name: sleuth-with-zipkin-service-a
+  sleuth:
+    enabled: true # 开启Sleuth
+    sampler:
+      probability: 1 # 采样率，取值范围 0-1
+  zipkin:
+    base-url: http://localhost:9411 # 指定 zipkin server 的地址,上报追踪日志
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:58020/eureka/

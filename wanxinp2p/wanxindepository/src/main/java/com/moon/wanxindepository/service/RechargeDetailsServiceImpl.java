@@ -72,8 +72,8 @@ public class RechargeDetailsServiceImpl extends ServiceImpl<RechargeDetailsMappe
             response.setSuccess();
             requestDetailsService.modifyGatewayByRequestNo(response);
 
-            //产生充值成功消息
-            //producer.recharge(rechargeRequest.getAppCode(), response);
+            // 产生充值成功消息
+            producer.recharge(rechargeRequest.getAppCode(), response);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
 
@@ -86,8 +86,8 @@ public class RechargeDetailsServiceImpl extends ServiceImpl<RechargeDetailsMappe
             response.setRespMsg(e.getMessage());
             requestDetailsService.modifyGatewayByRequestNo(response);
 
-            //产生充值失败消息
-            //producer.recharge(rechargeRequest.getAppCode(), response);
+            // 产生充值失败消息
+            producer.recharge(rechargeRequest.getAppCode(), response);
             throw new BusinessException(response.getRequestNo(), RemoteReturnCode.EXCEPTION, e.getMessage(), e);
         }
         return response;

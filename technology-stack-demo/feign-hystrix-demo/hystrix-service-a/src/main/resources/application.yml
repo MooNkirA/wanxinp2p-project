@@ -1,0 +1,15 @@
+server:
+  port: 59021
+  servlet:
+    context-path: /service-a
+spring:
+  application:
+    name: feign-hystrix-service-a
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:59020/eureka/
+# 开启 hystrix
+feign:
+  hystrix:
+    enabled: true

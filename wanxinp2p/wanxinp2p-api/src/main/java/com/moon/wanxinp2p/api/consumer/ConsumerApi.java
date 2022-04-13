@@ -8,6 +8,9 @@ import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.lang.Nullable;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 /**
  * 用户中心接口API
@@ -77,8 +80,26 @@ public interface ConsumerApi {
      * 生成充值请求数据
      *
      * @param amount      充值金额
-     * @param callbackURL 回调地址
+     * @param callbackUrl 回调地址
      * @return
      */
-    RestResponse<GatewayRequest> createRechargeRecord(String amount, String callbackURL);
+    RestResponse<GatewayRequest> createRechargeRecord(String amount, String callbackUrl);
+
+    /**
+     * 生成用户提现数据
+     *
+     * @param amount      提现金额
+     * @param callbackUrl 回调地址
+     * @return
+     */
+    RestResponse<GatewayRequest> createWithdrawRecord(String amount, String callbackUrl);
+
+    /**
+     * 提交身份证图片给百度AI进行识别
+     *
+     * @param file 被上传的文件
+     * @param flag 身份证正反面  取值front 或 back
+     * @return Map集合 识别成功后把身份证上的姓名和身份证号存到map中返回
+     */
+    RestResponse<Map<String, String>> imageRecognition(MultipartFile file, String flag);
 }

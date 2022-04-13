@@ -104,7 +104,7 @@
 			submitHandle(){
 				const data = {amount:this.amount, period:this.period*30, description:this.description}
 				if (this.userInfo.isBindCard) {
-                    //if (this.userInfo.isIdCardAuth) {
+                    if (this.userInfo.isIdCardAuth) {
                         this.request({
                             url: `transaction/my/projects`,
                             method: 'POST',
@@ -117,9 +117,9 @@
                                 title: err.data.msg
                             });
                         })
-                    //} else {
-                    //    this.goPath('/pages/user/identityAuth')
-                    //}
+                    } else {
+                       this.goPath('/pages/user/identityAuth')
+                    }
 				} else {
                     this.goPath('/pages/lend/openStorage')
 					uni.setStorage({key: 'openSt', data: 'borrow'})

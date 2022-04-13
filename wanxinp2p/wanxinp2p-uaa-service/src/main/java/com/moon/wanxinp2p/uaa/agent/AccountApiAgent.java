@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
  * @date 2022-02-22 15:20
  * @description
  */
-@FeignClient("account-service")
+@FeignClient(name = "account-service", fallbackFactory = AccountFallbackFactory.class)
 public interface AccountApiAgent {
 
     @PostMapping(value = "/account/l/accounts/session")

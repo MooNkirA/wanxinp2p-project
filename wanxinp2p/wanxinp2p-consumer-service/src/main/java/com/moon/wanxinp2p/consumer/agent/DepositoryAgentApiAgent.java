@@ -4,6 +4,7 @@ import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
 import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
+import com.moon.wanxinp2p.api.depository.model.WithdrawRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,4 +43,13 @@ public interface DepositoryAgentApiAgent {
      */
     @PostMapping("/depository-agent/l/recharges")
     RestResponse<GatewayRequest> createRechargeRecord(@RequestBody RechargeRequest rechargeRequest);
+
+    /**
+     * 用户提现
+     *
+     * @param withdrawRequest 用户提现请求数据
+     * @return
+     */
+    @PostMapping("/depository-agent/l/withdraw")
+    RestResponse<GatewayRequest> createWithdrawRecord(@RequestBody WithdrawRequest withdrawRequest);
 }

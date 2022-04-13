@@ -14,7 +14,6 @@ import com.moon.wanxinp2p.api.consumer.model.ConsumerRequest;
 import com.moon.wanxinp2p.api.depository.model.BalanceDetailsDTO;
 import com.moon.wanxinp2p.api.depository.model.DepositoryConsumerResponse;
 import com.moon.wanxinp2p.api.depository.model.GatewayRequest;
-import com.moon.wanxinp2p.api.depository.model.RechargeRequest;
 import com.moon.wanxinp2p.common.domain.RestResponse;
 import com.moon.wanxinp2p.common.enums.CodePrefixCode;
 import com.moon.wanxinp2p.common.enums.CommonErrorCode;
@@ -26,12 +25,9 @@ import com.moon.wanxinp2p.common.util.IDCardUtil;
 import com.moon.wanxinp2p.consumer.agent.AccountApiAgent;
 import com.moon.wanxinp2p.consumer.agent.DepositoryAgentApiAgent;
 import com.moon.wanxinp2p.consumer.common.enums.ConsumerErrorCode;
-import com.moon.wanxinp2p.consumer.common.util.SecurityUtil;
 import com.moon.wanxinp2p.consumer.entity.BankCard;
 import com.moon.wanxinp2p.consumer.entity.Consumer;
-import com.moon.wanxinp2p.consumer.entity.RechargeRecord;
 import com.moon.wanxinp2p.consumer.mapper.ConsumerMapper;
-import com.moon.wanxinp2p.consumer.mapper.RechargeRecordMapper;
 import com.moon.wanxinp2p.consumer.service.BankCardService;
 import com.moon.wanxinp2p.consumer.service.ConsumerService;
 import lombok.extern.slf4j.Slf4j;
@@ -40,10 +36,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.Map;
 
 /**
@@ -67,9 +61,6 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
     // 注入 feign 存管代理服务接口
     @Autowired
     private DepositoryAgentApiAgent depositoryAgentApiAgent;
-
-    @Autowired
-    private RechargeRecordMapper rechargeRecordMapper;
 
     /**
      * 检测用户是否存在
@@ -302,53 +293,14 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer> i
     }
 
     /**
-     * 生成充值请求数据
+     * 提交身份证图片给百度AI进行识别
      *
-     * @param amount      充值金额
-     * @param callbackURL 回调地址
-     * @return
+     * @param file 被上传的文件
+     * @param flag 身份证正反面  取值front 或 back
+     * @return Map集合 识别成功后把身份证上的姓名和身份证号存到map中返回
      */
     @Override
-    @Transactional
-    public RestResponse<GatewayRequest> createRechargeRecord(String amount, String callbackURL) {
-        // 1. 使用工具类，从请求域中获取到用户手机号
-        ConsumerDTO consumer = getByMobile(SecurityUtil.getUser().getMobile());
-        // 判断当前用户是否已经开户，根据用户手机号查询用户表
-        if (consumer == null) {
-            // 用户不存在
-            throw new BusinessException(CommonErrorCode.E_140101);
-        }
-        // 判断 isBindCard（是否绑定银行卡）是否为1
-        if (consumer.getIsBindCard() != 1) {
-            // 已经绑卡
-            throw new BusinessException(ConsumerErrorCode.E_140152);
-        }
-
-        // TODO: 目前只对金额做简单的校验，不够全面
-        if (StringUtils.isEmpty(amount) || new BigDecimal(amount).compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(ConsumerErrorCode.E_140133);
-        }
-
-        // 2. 接收用户填写的充值数据
-        RechargeRecord rechargeRecord = new RechargeRecord();
-        rechargeRecord.setConsumerId(consumer.getId());
-        rechargeRecord.setUserNo(consumer.getUserNo());
-        rechargeRecord.setAmount(new BigDecimal(amount));
-        rechargeRecord.setCreateDate(LocalDateTime.now());
-        // 生成请求流程方法
-        String requestNo = CodeNoUtil.getNo(CodePrefixCode.CODE_REQUEST_PREFIX);
-        rechargeRecord.setRequestNo(requestNo);
-        // 设置状态为 2-未同步
-        rechargeRecord.setCallbackStatus(StatusCode.STATUS_OUT.getCode());
-
-        // 2. 用户中心保存充值信息
-        rechargeRecordMapper.insert(rechargeRecord);
-
-        // 3. 准备数据，发起远程调用，请求存管代理生成签名数据
-        RechargeRequest rechargeRequest = new RechargeRequest();
-        BeanUtils.copyProperties(rechargeRecord, rechargeRequest);
-
-        // 4. 将签名数据返回给前端
-        return depositoryAgentApiAgent.createRechargeRecord(rechargeRequest);
+    public Map<String, String> imageRecognition(MultipartFile file, String flag) {
+        return null;
     }
 }
